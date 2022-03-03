@@ -1,0 +1,35 @@
+<html>
+<head>
+<style>
+textarea{
+  height: 50%;
+  width: 100%;
+}
+</style>
+</head>
+<body>
+	<textarea id="input" name="input"></textarea>
+	<textarea id="output" name="output" readonly></textarea>
+    <script type="text/javascript">
+        const button = document.getElementById('post-btn');
+
+		input.addEventListener('input', async _ => {
+		  try {     
+			fetch('/api/analyze', {
+				method: 'post',
+				headers: {
+					'Accept': 'application/json',
+					'Content-Type': 'application/json',
+				},
+			  body: JSON.stringify({
+				'version': '1.19.0',
+				'stacktrace': document.getElementById('input').value
+			  })
+			}).then(response => response.json())
+			.then(data => document.getElementById('output').value = data.stacktrace);
+		  } catch(err) {
+			console.error(`Error: ${err}`);
+		  }
+		});
+</script>
+</html>

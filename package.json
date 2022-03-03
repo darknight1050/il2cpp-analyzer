@@ -1,0 +1,18 @@
+{
+  "name": "il2cppanalyzer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "prod": "set PORT=80 && set NODE_ENV=production && node index.js"
+  },
+  "keywords": [],
+  "author": "darknight1050",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "lodash": "^4.17.21"
+  }
+}
