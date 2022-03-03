@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon index.js",
-    "prod": "set PORT=80 && set NODE_ENV=production && node index.js"
+    "prod": "set PORT=80 && node index.js"
   },
   "keywords": [],
   "author": "darknight1050",

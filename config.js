@@ -6,7 +6,7 @@ const Production = {
     isProduction: true
 };
 
-const isProduction = process.env.NODE_ENV.localeCompare("production");
+const isProduction = process.env.NODE_ENV.localeCompare("development");
 const Config = isProduction ? Production : Development;
 
 module.exports = Config;
