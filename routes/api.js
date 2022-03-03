@@ -14,7 +14,7 @@ module.exports = (app) => {
     fs.readdirSync(versionsPath).forEach(file => {
       versions.push(file.replace(".json", ""));
     });
-    res.status(400).json({
+    res.status(200).json({
       versions: versions
     });
   });

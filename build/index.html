@@ -1,35 +1,65 @@
 <html>
 <head>
 <style>
-textarea{
-  height: 50%;
-  width: 100%;
+.main {
+	display: grid;
+	grid-template-rows: 24px 1fr 1fr;
+	height: 100%;
+}
+#version {
+	width: 64px;
+}
+#input {
+	margin-top: 8px;
+	width: 100%;
+}
+#output {
+	margin-top: 8px;
+	width: 100%;
 }
 </style>
 </head>
 <body>
-	<textarea id="input" name="input"></textarea>
-	<textarea id="output" name="output" readonly></textarea>
+	<div class="main">
+		<select id="version"></select>
+		<textarea id="input" name="input"></textarea>
+		<textarea id="output" name="output" readonly></textarea>
+	</div>
     <script type="text/javascript">
-        const button = document.getElementById('post-btn');
-
+		var versions = document.getElementById("version");
+		try {  
+			fetch('/api/versions')
+				.then(response => response.json())
+				.then(data => {
+					data.versions.forEach(version => {
+						var option = document.createElement('option');
+						option.text = version;
+						option.value = version;
+						versions.add(option);
+					});
+					versions.value = data.versions[data.versions.length-1];
+				});
+		} catch(err) {
+			console.error(`Error: ${err}`);
+		}
 		input.addEventListener('input', async _ => {
 		  try {     
 			fetch('/api/analyze', {
-				method: 'post',
-				headers: {
-					'Accept': 'application/json',
-					'Content-Type': 'application/json',
-				},
-			  body: JSON.stringify({
-				'version': '1.19.0',
-				'stacktrace': document.getElementById('input').value
-			  })
-			}).then(response => response.json())
-			.then(data => document.getElementById('output').value = data.stacktrace);
+					method: 'POST',
+					headers: {
+						'Accept': 'application/json',
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+						'version': versions.value,
+						'stacktrace': document.getElementById('input').value
+					})
+				})
+				.then(response => response.json())
+				.then(data => document.getElementById('output').value = data.stacktrace);
 		  } catch(err) {
 			console.error(`Error: ${err}`);
 		  }
 		});
-</script>
+	</script>
 </html>
