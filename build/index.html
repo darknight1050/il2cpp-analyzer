@@ -43,23 +43,25 @@
 			console.error(`Error: ${err}`);
 		}
 		var analyze = async _ => {
-		  try {     
-			fetch('/api/analyze', {
-					method: 'POST',
-					headers: {
-						'Accept': 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						'version': versions.value,
-						'stacktrace': document.getElementById('input').value
-					})
-				})
-				.then(response => response.json())
-				.then(data => document.getElementById('output').value = data.stacktrace);
-		  } catch(err) {
-			console.error(`Error: ${err}`);
-		  }
+			try {
+				if(document.getElementById('input').value.length > 0) {
+					fetch('/api/analyze', {
+							method: 'POST',
+							headers: {
+								'Accept': 'application/json',
+								'Content-Type': 'application/json',
+							},
+							body: JSON.stringify({
+								'version': versions.value,
+								'stacktrace': document.getElementById('input').value
+							})
+						})
+						.then(response => response.json())
+						.then(data => document.getElementById('output').value = data.stacktrace);
+				}
+			} catch(err) {
+				console.error(`Error: ${err}`);
+			}
 		};
 		input.addEventListener('input', analyze);
 		versions.addEventListener('change', analyze);
