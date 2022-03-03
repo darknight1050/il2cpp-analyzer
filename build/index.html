@@ -27,6 +27,8 @@
 	</div>
     <script type="text/javascript">
 		var versions = document.getElementById("version");
+		var input = document.getElementById("input");
+		var output = document.getElementById("output");
 		try {  
 			fetch('/api/versions')
 				.then(response => response.json())
@@ -44,7 +46,7 @@
 		}
 		var analyze = async _ => {
 			try {
-				if(document.getElementById('input').value.length > 0) {
+				if(input.value.length > 0) {
 					fetch('/api/analyze', {
 							method: 'POST',
 							headers: {
@@ -53,11 +55,11 @@
 							},
 							body: JSON.stringify({
 								'version': versions.value,
-								'stacktrace': document.getElementById('input').value
+								'stacktrace': input.value
 							})
 						})
 						.then(response => response.json())
-						.then(data => document.getElementById('output').value = data.stacktrace);
+						.then(data => output.value = data.stacktrace);
 				}
 			} catch(err) {
 				console.error(`Error: ${err}`);
