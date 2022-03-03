@@ -12,7 +12,6 @@ module.exports = (app) => {
   app.get("/api/versions", (req, res) => {
     let versions = [];
     fs.readdirSync(versionsPath).forEach(file => {
-      console.log(file);
       versions.push(file.replace(".json", ""));
     });
     res.status(400).json({
@@ -21,8 +20,6 @@ module.exports = (app) => {
   });
 
   app.post("/api/analyze", (req, res) => {
-    log
-    console.log(req.body)
     if (_.isEmpty(req.body)) {
       res.status(400).json({
         success: false,
