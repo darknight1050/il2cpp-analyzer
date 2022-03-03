@@ -42,7 +42,7 @@
 		} catch(err) {
 			console.error(`Error: ${err}`);
 		}
-		input.addEventListener('input', async _ => {
+		var analyze = async _ => {
 		  try {     
 			fetch('/api/analyze', {
 					method: 'POST',
@@ -60,6 +60,8 @@
 		  } catch(err) {
 			console.error(`Error: ${err}`);
 		  }
-		});
+		};
+		input.addEventListener('input', analyze);
+		versions.addEventListener('change', analyze);
 	</script>
 </html>
