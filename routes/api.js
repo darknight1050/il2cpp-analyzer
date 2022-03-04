@@ -32,7 +32,7 @@ module.exports = (app) => {
             });
         return;
         }
-        let version = req.body.version;
+        let version = req.body.version.replace(/\.\./g, "").replace(/\//g, "").replace(/\\/g, "");
         let stacktrace = req.body.stacktrace;
         let url = req.body.url;
         if (_.isEmpty(version)) {
@@ -51,7 +51,7 @@ module.exports = (app) => {
             });
             return;
         }
-        let fileName = versionsPath + version.replace("..", "").replace("/", "").replace("\\", "") + ".json";
+        let fileName = versionsPath + version + ".json";
         if (!fs.existsSync(fileName)) {
             res.status(400).json({
                 success: false,
@@ -86,7 +86,7 @@ module.exports = (app) => {
 
         let result;
         while(result = regexAddressPc.exec(analyzedStackTrace)) {
-            let addr = parseInt(String(result), 16);
+            let addr = parseInt(result.toString(), 16);
             let analyzed = analyze(json, addr);
             if(analyzed) {
                 let startAddr = analyzed.ranges.sort((a, b) => a[0] - b[0])[0][0];
@@ -96,7 +96,7 @@ module.exports = (app) => {
             }
         }
         while(result = regexAddressAt.exec(analyzedStackTrace)) {
-            let addrStr = String(result);
+            let addrStr = result.toString();
             let addr = parseInt(addrStr, 16);
             let analyzed = analyze(json, addr);
             if(analyzed) {
