@@ -32,15 +32,18 @@ module.exports = (app) => {
             });
         return;
         }
-        if (_.isEmpty(req.body.version)) {
+        let version = req.body.version;
+        let stacktrace = req.body.stacktrace;
+        let url = req.body.url;
+        if (_.isEmpty(version)) {
             res.status(400).json({
                 success: false,
                 error: "No version!"
             });
             return;
         }
-        let hasStacktrace = !_.isEmpty(req.body.stacktrace);
-        let hasUrl = !_.isEmpty(req.body.url);
+        let hasStacktrace = !_.isEmpty(stacktrace);
+        let hasUrl = !_.isEmpty(url);
         if (!hasStacktrace && !hasUrl) {
             res.status(400).json({
                 success: false,
@@ -48,7 +51,7 @@ module.exports = (app) => {
             });
             return;
         }
-        let fileName = versionsPath + req.body.version.replace("..", "").replace("/", "").replace("\\", "") + ".json";
+        let fileName = versionsPath + version.replace("..", "").replace("/", "").replace("\\", "") + ".json";
         if (!fs.existsSync(fileName)) {
             res.status(400).json({
                 success: false,
@@ -58,14 +61,14 @@ module.exports = (app) => {
         }
         
         let json = JSON.parse(fs.readFileSync(fileName));
-        const regexAddressPc = /(?<=pc ).+?(?=  \/data\/app\/com.beatgames.beatsaber-.+?\/lib\/arm64\/libil2cpp.so)/g;
+        const regexAddressPc = /(?<=pc ).+?(?=  \/data\/app\/com.beatgames.beatsaber-.+?\/lib\/arm64\/libil2cpp.so \(BuildId:)/g;
         const regexAddressAt = /(?<=at libil2cpp\.).+?(?=\(Native Method\))/g;
         let analyzedStackTrace = "";
         if(hasStacktrace)
-            analyzedStackTrace = req.body.stacktrace;
+            analyzedStackTrace = stacktrace;
         if(hasUrl) {
             try {
-                let res = await axios.get(req.body.url);
+                let res = await axios.get(url);
                 analyzedStackTrace = res.data;
                 const regexAndroidRuntime = /E AndroidRuntime:/;
                 const regexCrash = /E CRASH   :/; 
@@ -103,7 +106,7 @@ module.exports = (app) => {
         
         res.status(200).json({
             success: true,
-            version: req.body.version,
+            version: version,
             stacktrace: analyzedStackTrace
         });
     });
