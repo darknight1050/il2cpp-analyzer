@@ -86,9 +86,10 @@ module.exports = (app) => {
             let addr = parseInt(String(result), 16);
             let analyzed = analyze(json, addr);
             if(analyzed) {
+                let startAddr = analyzed.ranges.sort((a, b) => a[0] - b[0])[0][0];
                 const search = "libil2cpp.so";
                 let index = analyzedStackTrace.indexOf(search, result.index);
-                analyzedStackTrace = analyzedStackTrace.insert(index + search.length, " (" + analyzed.sig + ")");
+                analyzedStackTrace = analyzedStackTrace.insert(index + search.length, " (" + analyzed.sig + "+" + (addr-startAddr) + ")");
             }
         }
         while(result = regexAddressAt.exec(analyzedStackTrace)) {
