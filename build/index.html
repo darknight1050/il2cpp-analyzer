@@ -63,7 +63,13 @@
 							body: JSON.stringify(body)
 						})
 						.then(response => response.json())
-						.then(data => output.value = data.stacktrace);
+						.then(data => {
+							if(data.error) {
+								output.value = data.error;
+							} else {
+								output.value = data.stacktrace;
+							}
+						});
 				}
 			} catch(err) {
 				console.error(`Error: ${err}`);

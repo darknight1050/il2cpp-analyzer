@@ -51,8 +51,8 @@ module.exports = (app) => {
         let fileName = versionsPath + req.body.version.replace("..", "").replace("/", "").replace("\\", "") + ".json";
         if (!fs.existsSync(fileName)) {
             res.status(400).json({
-            success: false,
-            error: "Version not found!"
+                success: false,
+                error: "Version not found!"
             });
             return;
         }
@@ -64,13 +64,21 @@ module.exports = (app) => {
         if(hasStacktrace)
             analyzedStackTrace = req.body.stacktrace;
         if(hasUrl) {
-            let res = await axios.get(req.body.url);
-            analyzedStackTrace = res.data;
-            const regexAndroidRuntime = /E AndroidRuntime:/;
-            const regexCrash = /E CRASH   :/; 
-            let lines = analyzedStackTrace.split('\n').filter(line => regexAndroidRuntime.test(line) || regexCrash.test(line));
-            analyzedStackTrace = "";
-            lines.forEach(line => analyzedStackTrace += line + "\n");
+            try {
+                let res = await axios.get(req.body.url);
+                analyzedStackTrace = res.data;
+                const regexAndroidRuntime = /E AndroidRuntime:/;
+                const regexCrash = /E CRASH   :/; 
+                let lines = analyzedStackTrace.split('\n').filter(line => regexAndroidRuntime.test(line) || regexCrash.test(line));
+                analyzedStackTrace = "";
+                lines.forEach(line => analyzedStackTrace += line + "\n");
+            } catch(err) {
+                res.status(400).json({
+                    success: false,
+                    error: "Couldn't load url!"
+                });
+                return;
+            }
         }
 
         let result;
