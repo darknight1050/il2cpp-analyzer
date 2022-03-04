@@ -10,7 +10,7 @@ def DumpFunction(fn):
     ranges = []
     for range in fn.getBody().toList():
         ranges.append([ "0x" + str(range.getMinAddress()), "0x" + str(range.getMaxAddress()) ] )
-    jsonData["functions"].append({ "name": fn.getName(), "sig": fn.getSignature().getPrototypeString(), "ranges": ranges });
+    jsonData["functions"].append({ "name": fn.getName(), "sig": fn.getSignature().getPrototypeString().replace(" *", "*"), "ranges": ranges });
 
 for fn in getCurrentProgram().getFunctionManager().getFunctions(True):
     DumpFunction(fn)
