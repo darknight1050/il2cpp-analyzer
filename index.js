@@ -13,6 +13,7 @@ require("./routes/router")(app);
 
 app.use(function (err, req, res, next) {
     if (err) {
+        console.log(err);
         res.status(500).end();
     } else {
         next();
