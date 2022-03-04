@@ -100,7 +100,16 @@ module.exports = (app) => {
             let addr = parseInt(addrStr, 16);
             let analyzed = analyze(json, addr);
             if(analyzed) {
-                analyzedStackTrace = analyzedStackTrace.splice(result.index, addrStr.length + "(Native Method)".length, analyzed.sig + "(" + addrStr + ")");
+                let startAddr = analyzed.ranges.sort((a, b) => a[0] - b[0])[0][0];
+                let indexEnd = analyzed.sig.indexOf("(");
+                if(indexEnd < 0)
+                    indexEnd = analyzed.sig.length;
+                let indexStart = analyzed.sig.lastIndexOf("::", indexEnd);
+                if(indexStart < 0)
+                    indexStart = analyzed.sig.lastIndexOf(" ", indexEnd)-1;
+                if(indexStart < 0)
+                    indexStart = -2;
+                analyzedStackTrace = analyzedStackTrace.splice(result.index, addrStr.length + "(Native Method)".length, analyzed.sig + "(" + analyzed.sig.slice(indexStart+2, indexEnd) + ":" + (addr-startAddr) + ")");
             }
         }
         
