@@ -31,7 +31,7 @@
 		var output = document.getElementById("output");
 		try {  
 			fetch('/api/versions')
-				.then(response => response.json())
+			    .then(response => response.json())
 				.then(data => {
 					data.versions.forEach(version => {
 						var option = document.createElement('option');

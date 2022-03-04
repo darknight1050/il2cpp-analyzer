@@ -2,7 +2,7 @@ import json
 import os
 
 def GetScriptDirectory():
-	return getSourceFile().getParentFile().toString()  
+    return getSourceFile().getParentFile().toString()  
     
 jsonData = {"functions":[]}
 
