@@ -51,16 +51,16 @@
 		var analyze = async _ => {
 			try {
 				if(input.value.length > 0) {
+					let body = { 'version': versions.value, 'stacktrace': input.value };
+					if(input.value.startsWith("http"))
+						body = { 'version': versions.value, 'url': input.value };
 					fetch('/api/analyze', {
 							method: 'POST',
 							headers: {
 								'Accept': 'application/json',
 								'Content-Type': 'application/json',
 							},
-							body: JSON.stringify({
-								'version': versions.value,
-								'stacktrace': input.value
-							})
+							body: JSON.stringify(body)
 						})
 						.then(response => response.json())
 						.then(data => output.value = data.stacktrace);
