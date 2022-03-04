@@ -57,8 +57,11 @@ module.exports = (app) => {
         while(result = regex.exec(analyzedStackTrace)) {
             let addr = parseInt(String(result), 16);
             let analyzed = analyze(json, addr);
-            if(analyzed)
-                analyzedStackTrace = analyzedStackTrace.insert(result.index + String(result).length, " (" + analyzed.sig + ")")
+            if(analyzed) {
+                const search = "libil2cpp.so";
+                let index = analyzedStackTrace.indexOf(search, result.index);
+                analyzedStackTrace = analyzedStackTrace.insert(index + search.length, " (" + analyzed.sig + ")")
+            }
         }
         res.status(200).json({
             success: true,
