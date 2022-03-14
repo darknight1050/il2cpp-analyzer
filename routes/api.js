@@ -30,7 +30,7 @@ module.exports = (app) => {
                 success: false,
                 error: "No body!"
             });
-        return;
+            return;
         }
         let version = req.body.version.replace(/\.\./g, "").replace(/\//g, "").replace(/\\/g, "");
         let stacktrace = req.body.stacktrace;
@@ -61,7 +61,7 @@ module.exports = (app) => {
         }
         
         let json = JSON.parse(fs.readFileSync(fileName));
-        const regexAddressPc = /(?<=pc ).+?(?=  \/data\/app\/com.beatgames.beatsaber-.+?\/lib\/arm64\/libil2cpp.so \(BuildId:)/g;
+        const regexAddressPc = /(?<=pc ).+?(?=  \/data\/app\/com.beatgames.beatsaber-.+?\/lib\/arm64\/libil2cpp.so)/g;
         const regexAddressAt = /(?<=at libil2cpp\.).+?(?=\(Native Method\))/g;
         let analyzedStackTrace = "";
         if(hasStacktrace)
