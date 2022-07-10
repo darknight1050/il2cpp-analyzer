@@ -42,7 +42,6 @@ module.exports = (app) => {
     app.post("/api/analyze/address", async (req, res) => {
         if (_.isEmpty(req.body)) {
             res.status(400).json({
-                success: false,
                 error: "No body!"
             });
             return;
@@ -51,7 +50,6 @@ module.exports = (app) => {
         let version = req.body.version.replace(/\.\./g, "").replace(/\//g, "").replace(/\\/g, "");
         if (_.isEmpty(version)) {
             res.status(400).json({
-                success: false,
                 error: "No version!"
             });
             return;
@@ -61,7 +59,6 @@ module.exports = (app) => {
         let hasAddresses = !_.isEmpty(addresses);
         if (!hasAddresses) {
             res.status(400).json({
-                success: false,
                 error: "No addresses!"
             });
             return;
@@ -74,7 +71,6 @@ module.exports = (app) => {
         if (!fs.existsSync(fileName)) {
             console.log(versionFromBuildID(version));
             res.status(400).json({
-                success: false,
                 error: "Version not found!"
             });
             return;
@@ -83,7 +79,6 @@ module.exports = (app) => {
         let json = JSON.parse(fs.readFileSync(fileName));
 
         res.status(200).json({
-            success: true,
             version: version,
             result: analyzeMultiple(json, addresses)
         });
@@ -92,7 +87,6 @@ module.exports = (app) => {
     app.post("/api/analyze", async (req, res) => {
         if (_.isEmpty(req.body)) {
             res.status(400).json({
-                success: false,
                 error: "No body!"
             });
             return;
@@ -101,7 +95,6 @@ module.exports = (app) => {
         let version = req.body.version.replace(/\.\./g, "").replace(/\//g, "").replace(/\\/g, "");
         if (_.isEmpty(version)) {
             res.status(400).json({
-                success: false,
                 error: "No version!"
             });
             return;
@@ -113,7 +106,6 @@ module.exports = (app) => {
         let hasUrl = !_.isEmpty(url);
         if (!hasStacktrace && !hasUrl) {
             res.status(400).json({
-                success: false,
                 error: "No stacktrace or url!"
             });
             return;
@@ -124,7 +116,6 @@ module.exports = (app) => {
             let fileName = versionsPath + version + ".json";
             if (!fs.existsSync(fileName)) {
                 res.status(400).json({
-                    success: false,
                     error: "Version not found!"
                 });
                 return;
@@ -150,7 +141,6 @@ module.exports = (app) => {
                 }
             } catch(err) {
                 res.status(400).json({
-                    success: false,
                     error: "Couldn't load url!"
                 });
                 return;
@@ -166,7 +156,6 @@ module.exports = (app) => {
                 let indexEnd = analyzedStackTrace.indexOf(")", indexStart);
                 if(!(version = versionFromBuildID(analyzedStackTrace.substring(indexStart + search.length, indexEnd)))) {
                     res.status(400).json({
-                        success: false,
                         error: "Version not found!"
                     });
                     return;
@@ -174,7 +163,6 @@ module.exports = (app) => {
                 let fileName = versionsPath + version + ".json";
                 if (!fs.existsSync(fileName)) {
                     res.status(400).json({
-                        success: false,
                         error: "Version not found!"
                     });
                     return;
@@ -209,7 +197,6 @@ module.exports = (app) => {
         }
         
         res.status(200).json({
-            success: true,
             version: version,
             stacktrace: analyzedStackTrace
         });
