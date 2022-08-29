@@ -7,16 +7,8 @@ html {
 
 .main {
 	display: grid;
-	grid-template-rows: 24px 1fr 1fr;
+	grid-template-rows: 1fr 1fr;
 	height: 100%;
-}
-
-#version {
-	color: #c9d1d9;
-	background-color: #0d1117;
-	border-color: #30363d;
-	border-radius: 6px;
-	width: 72px;
 }
 
 textarea {
@@ -53,65 +45,43 @@ textarea::-webkit-scrollbar-thumb {
 	border-radius: 16px;
 }
 
-select:focus {
-    outline-width: 0;
-}
-
 </style>
 </head>
 <body>
 	<div class="main">
-		<select id="version"></select>
 		<textarea id="input" name="input" spellcheck="false"></textarea>
-		<textarea id="output" name="output" readonly></textarea>
+		<textarea id="output" name="output" spellcheck="false" readonly></textarea>
 	</div>
     <script type="text/javascript">
-		var versions = document.getElementById("version");
 		var input = document.getElementById("input");
 		var output = document.getElementById("output");
-		try {  
-			fetch('/api/versions')
-			    .then(response => response.json())
-				.then(data => {
-					data.versions.forEach(version => {
-						var option = document.createElement('option');
-						option.text = version;
-						option.value = version;
-						versions.add(option);
-					});
-					versions.value = data.versions[data.versions.length-1];
-				});
-		} catch(err) {
-			console.error(`Error: ${err}`);
-		}
 		var analyze = async _ => {
 			try {
 				if(input.value.length > 0) {
-					let body = { 'version': versions.value, 'stacktrace': input.value };
+					let body = { stacktrace: input.value };
 					if(input.value.startsWith("http"))
-						body = { 'version': versions.value, 'url': input.value };
+						body = { url: input.value };
 					fetch('/api/analyze', {
 							method: 'POST',
 							headers: {
-								'Accept': 'application/json',
+								Accept: 'application/json',
 								'Content-Type': 'application/json',
 							},
 							body: JSON.stringify(body)
-						})
-						.then(response => response.json())
-						.then(data => {
-							if(data.error) {
-								output.value = data.error;
-							} else {
-								output.value = data.stacktrace;
-							}
-						});
+					})
+					.then(response => response.json())
+					.then(data => {
+						if(data.error) {
+							output.value = data.error;
+						} else {
+							output.value = data.stacktrace;
+						}
+					});
 				}
 			} catch(err) {
 				console.error(`Error: ${err}`);
 			}
 		};
 		input.addEventListener('input', analyze);
-		versions.addEventListener('change', analyze);
 	</script>
 </html>

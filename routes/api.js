@@ -1,9 +1,6 @@
-const { Console } = require("console");
-const { find } = require("lodash");
 const _ = require("lodash"),
-    { analyzeSingle, analyzeMultiple } = require("../analyzer"),
-    fs = require("fs"),
-    axios = require('axios');
+    { getBuildIDs, analyzeBuildIDs } = require("../analyzer"),
+    axios = require("axios");
 
 String.prototype.insert = function(idx, str) {
     return this.slice(0, idx) + str + this.slice(idx);
@@ -13,75 +10,10 @@ String.prototype.splice = function(idx, replace, str) {
     return this.slice(0, idx) + str + this.slice(idx + replace);
 };
 
-const versionsPath = "./versions/";
-const buildIDs = JSON.parse(fs.readFileSync(versionsPath + "BuildID.json"));
-
-versionFromBuildID = (buildID) => {
-    for (let version in buildIDs) {
-        if(buildIDs[version].includes(buildID))
-            return version;
-    }
-    return;
-}
-
 module.exports = (app) => {
-    app.get("/api/versions", (req, res) => {
-        let versions = [];
-        fs.readdirSync(versionsPath).forEach(file => {
-            versions.push(file.replace(".json", ""));
-        });
-        res.status(200).json({
-            versions: versions
-        });
-    });
 
-    app.get("/api/buildids", (req, res) => {
-        res.status(200).json(buildIDs);
-    });
-
-    app.post("/api/analyze/address", async (req, res) => {
-        if (_.isEmpty(req.body)) {
-            res.status(400).json({
-                error: "No body!"
-            });
-            return;
-        }
-
-        let version = req.body.version.replace(/\.\./g, "").replace(/\//g, "").replace(/\\/g, "");
-        if (_.isEmpty(version)) {
-            res.status(400).json({
-                error: "No version!"
-            });
-            return;
-        }
-        
-        let addresses = req.body.addresses;
-        let hasAddresses = !_.isEmpty(addresses);
-        if (!hasAddresses) {
-            res.status(400).json({
-                error: "No addresses!"
-            });
-            return;
-        }
-        
-        if(ver = versionFromBuildID(version))
-            version = ver;
-
-        let fileName = versionsPath + version + ".json";
-        if (!fs.existsSync(fileName)) {
-            console.log(versionFromBuildID(version));
-            res.status(400).json({
-                error: "Version not found!"
-            });
-            return;
-        }
-
-        let json = JSON.parse(fs.readFileSync(fileName));
-
-        res.status(200).json({
-            version: version,
-            result: analyzeMultiple(json, addresses)
-        });
+    app.get("/api/versions", async (req, res) => {
+        res.status(200).json(getBuildIDs());
     });
 
     app.post("/api/analyze", async (req, res) => {
@@ -91,114 +23,72 @@ module.exports = (app) => {
             });
             return;
         }
+        
+        let buildIDs = req.body.buildids || [];
+        const hasBuildIDs = !_.isEmpty(buildIDs);
 
-        let version = req.body.version.replace(/\.\./g, "").replace(/\//g, "").replace(/\\/g, "");
-        if (_.isEmpty(version)) {
-            res.status(400).json({
-                error: "No version!"
+        let stacktrace = req.body.stacktrace || "";
+        const hasStacktrace = !_.isEmpty(stacktrace);
+
+        const url = req.body.url;
+        const hasUrl = !_.isEmpty(url);
+
+        if (hasBuildIDs) {
+            res.status(200).json({
+                result: analyzeBuildIDs(buildIDs)
             });
             return;
         }
-        
-        let stacktrace = req.body.stacktrace;
-        let url = req.body.url;
-        let hasStacktrace = !_.isEmpty(stacktrace);
-        let hasUrl = !_.isEmpty(url);
-        if (!hasStacktrace && !hasUrl) {
-            res.status(400).json({
-                error: "No stacktrace or url!"
+
+        if (hasStacktrace || hasUrl) {
+            if(hasUrl) {
+                try {
+                    const res = await axios.get(url);
+                    stacktrace = res.data;
+                    if(!stacktrace.startsWith("*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***")) {
+                        const regexAndroidRuntime = /E AndroidRuntime:/;
+                        const regexCrash = /E CRASH   :/; 
+                        const regexAt = /at /; 
+                        let lines = stacktrace.split('\n').filter(line => !regexAt.test(line) && (regexAndroidRuntime.test(line) || regexCrash.test(line)));
+                        stacktrace = "";
+                        lines.forEach(line => stacktrace += line + "\n");
+                    }
+                } catch(err) {
+                    res.status(400).json({
+                        error: "Couldn't load url!"
+                    });
+                    return;
+                }
+            }
+            const regexPc = /#[0-9]{2} pc (?<address>.{16})  \/.+? (?<insert>\(BuildId: )(?<buildID>.{40})\)/gd;
+            let match;
+            while(match = regexPc.exec(stacktrace)) {
+                const buildID = match.groups.buildID;
+                const address = "0x" + match.groups.address;
+                if(!buildIDs[buildID])
+                    buildIDs[buildID] = [];
+                buildIDs[buildID].push(address);
+            }
+            const analyzed = analyzeBuildIDs(buildIDs);
+            while(match = regexPc.exec(stacktrace)) {
+                const buildID = match.groups.buildID;
+                const address = "0x" + match.groups.address;
+                if(analyzed[buildID] && analyzed[buildID][address]) {
+                    const result = analyzed[buildID][address];
+                    const startAddr = result.ranges.sort((a, b) => a[0] - b[0])[0][0];
+                    const textInsert = "(" + result.sig + "+" + (address-startAddr) + ") ";
+                    const insertPos = match.indices.groups.insert[0];
+                    stacktrace = stacktrace.insert(insertPos, textInsert);
+                }
+            }
+            res.status(200).json({
+                stacktrace: stacktrace
             });
             return;
         }
-        
-        let json;
-        if(version != "BuildID") {
-            let fileName = versionsPath + version + ".json";
-            if (!fs.existsSync(fileName)) {
-                res.status(400).json({
-                    error: "Version not found!"
-                });
-                return;
-            }
-            json = JSON.parse(fs.readFileSync(fileName));
-        }
 
-        const regexAddressPc = /(?<=pc ).+?(?=  \/data\/app\/com.beatgames.beatsaber-.+?\/lib\/arm64\/libil2cpp.so)/g;
-        const regexAddressAt = /(?<=at libil2cpp\.).+?(?=\(Native Method\))/g;
-        let analyzedStackTrace = "";
-        if(hasStacktrace)
-            analyzedStackTrace = stacktrace;
-        if(hasUrl) {
-            try {
-                let res = await axios.get(url);
-                analyzedStackTrace = res.data;
-                if(!analyzedStackTrace.startsWith("*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***")) {
-                    const regexAndroidRuntime = /E AndroidRuntime:/;
-                    const regexCrash = /E CRASH   :/; 
-                    let lines = analyzedStackTrace.split('\n').filter(line => regexAndroidRuntime.test(line) || regexCrash.test(line));
-                    analyzedStackTrace = "";
-                    lines.forEach(line => analyzedStackTrace += line + "\n");
-                }
-            } catch(err) {
-                res.status(400).json({
-                    error: "Couldn't load url!"
-                });
-                return;
-            }
-        }
-
-        let result;
-        while(result = regexAddressPc.exec(analyzedStackTrace)) {
-            let addr = parseInt(result.toString(), 16);
-            if(!json) {
-                const search = "(BuildId: ";
-                let indexStart = analyzedStackTrace.indexOf(search, result.index);
-                let indexEnd = analyzedStackTrace.indexOf(")", indexStart);
-                if(!(version = versionFromBuildID(analyzedStackTrace.substring(indexStart + search.length, indexEnd)))) {
-                    res.status(400).json({
-                        error: "Version not found!"
-                    });
-                    return;
-                }
-                let fileName = versionsPath + version + ".json";
-                if (!fs.existsSync(fileName)) {
-                    res.status(400).json({
-                        error: "Version not found!"
-                    });
-                    return;
-                }
-                json = JSON.parse(fs.readFileSync(fileName));
-            }
-            let analyzed = analyzeSingle(json, addr);
-            if(analyzed) {
-                let startAddr = analyzed.ranges.sort((a, b) => a[0] - b[0])[0][0];
-                const search = "libil2cpp.so";
-                let index = analyzedStackTrace.indexOf(search, result.index);
-                analyzedStackTrace = analyzedStackTrace.insert(index + search.length, " (" + analyzed.sig + "+" + (addr-startAddr) + ")");
-            }
-        }
-
-        while(result = regexAddressAt.exec(analyzedStackTrace)) {
-            let addrStr = result.toString();
-            let addr = parseInt(addrStr, 16);
-            let analyzed = analyzeSingle(json, addr);
-            if(analyzed) {
-                let startAddr = analyzed.ranges.sort((a, b) => a[0] - b[0])[0][0];
-                let indexEnd = analyzed.sig.indexOf("(");
-                if(indexEnd < 0)
-                    indexEnd = analyzed.sig.length;
-                let indexStart = analyzed.sig.lastIndexOf("::", indexEnd);
-                if(indexStart < 0)
-                    indexStart = analyzed.sig.lastIndexOf(" ", indexEnd)-1;
-                if(indexStart < 0)
-                    indexStart = -2;
-                analyzedStackTrace = analyzedStackTrace.splice(result.index, addrStr.length + "(Native Method)".length, analyzed.sig + "(" + analyzed.sig.slice(indexStart+2, indexEnd) + ":" + (addr-startAddr) + ")");
-            }
-        }
-        
-        res.status(200).json({
-            version: version,
-            stacktrace: analyzedStackTrace
+        res.status(400).json({
+            error: "No buildids, stacktrace or url!"
         });
     });
-};
+}
