@@ -13,7 +13,7 @@ String.prototype.splice = function(idx, replace, str) {
 module.exports = (app) => {
 
     app.get("/api/versions", async (req, res) => {
-        res.status(200).json(getBuildIDs());
+        res.status(200).json({ versions: getBuildIDs() });
     });
 
     app.post("/api/analyze", async (req, res) => {
