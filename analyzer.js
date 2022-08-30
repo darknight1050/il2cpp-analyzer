@@ -4,26 +4,36 @@ const fs = require("fs");
 const versionsPath = "./versions";
 const availableBuildIDs = {};
 
-const readBuildIDs = async (path) => {
-    fs.readdirSync(path, { withFileTypes: true }).forEach(file => {
-        if(file.isDirectory())
-            readBuildIDs(path + "/" + file.name);
-        if(file.isFile()) {
-            try {
-                const json = JSON.parse(fs.readFileSync(path + "/" + file.name));
-                if(json.buildID !== undefined) {
-                    const name = (path + "/" + file.name).substring(versionsPath.length + 1);
-                    const buildID = json.buildID.toLocaleLowerCase();
-                    console.log("Loaded " + name + ": " + buildID);
-                    availableBuildIDs[buildID] = name;
-                }
-            } catch (e) {
+const readVersion = async (path) => {
+    fs.readFile(path, (err, buffer) => {
+        const name = path.substring(versionsPath.length + 1);
+        try {
+            const json = JSON.parse(buffer);
+            if(json.buildID !== undefined) {
+                const buildID = json.buildID.toLocaleLowerCase();
+                console.log("Loaded " + name + ": " + buildID);
+                availableBuildIDs[buildID] = name;
             }
+        } catch (e) {
+            console.log("Error loading " + name + ": " + e);
         }
     });
 }
 
-readBuildIDs(versionsPath);
+const readVersionsDir = async (path) => {
+    fs.readdir(path, { withFileTypes: true }, (err, files) => {
+        files.forEach(file => {
+            console.log(file)
+            if(file.isDirectory())
+                readVersionsDir(path + "/" + file.name);
+            if(file.isFile()) {
+                readVersion(path + "/" + file.name);
+            }
+        });
+    });
+}
+
+readVersionsDir(versionsPath);
 
 const getBuildIDs = () => {
     return Object.values(availableBuildIDs).map(name => name.substring(0, name.length - ".json".length));
