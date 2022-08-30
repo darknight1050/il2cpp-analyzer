@@ -23,7 +23,6 @@ const readVersion = async (path) => {
 const readVersionsDir = async (path) => {
     fs.readdir(path, { withFileTypes: true }, (err, files) => {
         files.forEach(file => {
-            console.log(file)
             if(file.isDirectory())
                 readVersionsDir(path + "/" + file.name);
             if(file.isFile()) {
