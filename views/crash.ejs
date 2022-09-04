@@ -1,0 +1,54 @@
+<html>
+<head>
+<style>
+html {
+	background-color: #0d1117;
+}
+
+.main {
+	display: grid;
+	grid-template-rows: 1fr;
+	height: 100%;
+}
+
+textarea {
+	color: #ffa657;
+	background-color: #0d1117;
+	border-color: #30363d;
+	border-radius: 6px;
+	white-space: pre;
+	overflow: auto;
+	margin-top: 8px;
+	width: 100%;
+	resize: none;
+}
+
+textarea:focus {
+    outline-width: 0;
+}
+
+textarea::-webkit-scrollbar {
+	width: 18px;
+}
+
+textarea::-webkit-scrollbar-corner {
+	background: #161b22;
+}
+
+textarea::-webkit-scrollbar-track {
+	background: #161b22;
+}
+
+textarea::-webkit-scrollbar-thumb {
+	background-color: #30363d;
+	border: 3px solid #161b22;
+	border-radius: 16px;
+}
+
+</style>
+</head>
+<body>
+	<div class="main">
+		<textarea id="output" name="output" spellcheck="false" readonly><%= crash %> </textarea>
+	</div>
+</html>

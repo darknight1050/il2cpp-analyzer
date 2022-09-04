@@ -1,6 +1,8 @@
 const _ = require("lodash"),
-    { getBuildIDs, analyzeBuildIDs } = require("../analyzer"),
-    axios = require("axios");
+    { getBuildIDs, analyzeBuildIDs, analyzeStacktrace } = require("../analyzer"),
+    { storeCrash, getCrashes, getCrash } = require("../storage"),
+    axios = require("axios"),
+    express = require("express");
 
 String.prototype.insert = function(idx, str) {
     return this.slice(0, idx) + str + this.slice(idx);
@@ -11,12 +13,11 @@ String.prototype.splice = function(idx, replace, str) {
 };
 
 module.exports = (app) => {
-
     app.get("/api/versions", async (req, res) => {
         res.status(200).json({ versions: getBuildIDs() });
     });
 
-    app.post("/api/analyze", async (req, res) => {
+    app.post("/api/analyze", express.json({limit: "10mb"}), async (req, res) => {
         if (_.isEmpty(req.body)) {
             res.status(400).json({
                 error: "No body!"
@@ -24,7 +25,7 @@ module.exports = (app) => {
             return;
         }
         
-        let buildIDs = req.body.buildids || [];
+        const buildIDs = req.body.buildids;
         const hasBuildIDs = !_.isEmpty(buildIDs);
 
         let stacktrace = req.body.stacktrace || "";
@@ -49,7 +50,7 @@ module.exports = (app) => {
                         const regexAndroidRuntime = /E AndroidRuntime:/;
                         const regexCrash = /E CRASH   :/; 
                         const regexAt = /at /; 
-                        let lines = stacktrace.split('\n').filter(line => !regexAt.test(line) && (regexAndroidRuntime.test(line) || regexCrash.test(line)));
+                        let lines = stacktrace.split("\n").filter(line => !regexAt.test(line) && (regexAndroidRuntime.test(line) || regexCrash.test(line)));
                         stacktrace = "";
                         lines.forEach(line => stacktrace += line + "\n");
                     }
@@ -60,29 +61,8 @@ module.exports = (app) => {
                     return;
                 }
             }
-            const regexPc = /#[0-9]{2} pc (?<address>.{16})  \/.+? (?<insert>\(BuildId: )(?<buildID>.{40})\)/gd;
-            let match;
-            while(match = regexPc.exec(stacktrace)) {
-                const buildID = match.groups.buildID;
-                const address = "0x" + match.groups.address;
-                if(!buildIDs[buildID])
-                    buildIDs[buildID] = [];
-                buildIDs[buildID].push(address);
-            }
-            const analyzed = analyzeBuildIDs(buildIDs);
-            while(match = regexPc.exec(stacktrace)) {
-                const buildID = match.groups.buildID;
-                const address = "0x" + match.groups.address;
-                if(analyzed[buildID] && analyzed[buildID][address]) {
-                    const result = analyzed[buildID][address];
-                    const startAddr = result.ranges.sort((a, b) => a[0] - b[0])[0][0];
-                    const textInsert = "(" + result.sig + "+" + (address-startAddr) + ") ";
-                    const insertPos = match.indices.groups.insert[0];
-                    stacktrace = stacktrace.insert(insertPos, textInsert);
-                }
-            }
             res.status(200).json({
-                stacktrace: stacktrace
+                stacktrace: analyzeStacktrace(stacktrace)
             });
             return;
         }
@@ -91,4 +71,27 @@ module.exports = (app) => {
             error: "No buildids, stacktrace or url!"
         });
     });
+
+    app.get("/api/crashes", async (req, res) => {
+        res.status(200).json(getCrashes());
+    });
+
+    app.get("/api/crashes/:crashId", async (req, res) => {
+        if(req.params.crashId === "latest") {
+            res.redirect("./" + getCrashes()[0]);
+            return;
+        }
+
+        const crash = getCrash(req.params.crashId);
+        if(crash) {
+            res.status(200).setHeader("Content-Type", "text/plain").send(crash);
+        } else {
+            res.status(404).end();
+        }
+    });
+
+    app.post("/api/upload", express.text({limit: "10mb"}), async (req, res) => {
+        res.status(200).setHeader("Content-Type", "text/plain").send(storeCrash(analyzeStacktrace(req.body)));
+    });
+
 }

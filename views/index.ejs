@@ -61,11 +61,11 @@ textarea::-webkit-scrollbar-thumb {
 					let body = { stacktrace: input.value };
 					if(input.value.startsWith("http"))
 						body = { url: input.value };
-					fetch('/api/analyze', {
-							method: 'POST',
+					fetch("/api/analyze", {
+							method: "POST",
 							headers: {
-								Accept: 'application/json',
-								'Content-Type': 'application/json',
+								Accept: "application/json",
+								"Content-Type": "application/json",
 							},
 							body: JSON.stringify(body)
 					})
@@ -82,6 +82,6 @@ textarea::-webkit-scrollbar-thumb {
 				console.error(`Error: ${err}`);
 			}
 		};
-		input.addEventListener('input', analyze);
+		input.addEventListener("input", analyze);
 	</script>
 </html>

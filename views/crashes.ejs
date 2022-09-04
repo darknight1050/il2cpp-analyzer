@@ -1,0 +1,33 @@
+<html>
+<head>
+<style>
+html {
+	background-color: #0d1117;
+}
+
+.main {
+	display: grid;
+	grid-template-rows: 1fr;
+	height: 100%;
+}
+
+a, ol {
+	color: #ffa657;
+}
+
+a:hover {
+	color: #cf8647;
+}
+
+</style>
+</head>
+<body>
+	<div class="main">
+		<ol>
+			<% for(var i=0; i < crashes.length; i++) { %>
+				<% crashId = crashes[i] %>
+				<li><a href="<%= crashId %>"><%= crashId %></a></li>
+			 <% } %>
+		</ol>
+	</div>
+</html>

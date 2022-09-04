@@ -5,13 +5,13 @@ const http = require("http"),
 
 const server = http.createServer(app);
 
-app.use(cors());
+app.set("view engine", "ejs");
 
-app.use(express.json({limit: '10mb'}));
+app.use(cors());
 
 require("./routes/router")(app);
 
-app.use(function (err, req, res, next) {
+app.use(async (err, req, res, next) => {
     if (err) {
         console.log(err);
         res.status(500).end();

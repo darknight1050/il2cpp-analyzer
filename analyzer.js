@@ -74,4 +74,30 @@ const analyzeBuildIDs = (buildIDs) => {
     return analyzed;
 }
 
-module.exports = { getBuildIDs, analyzeBuildIDs };
+const analyzeStacktrace = (stacktrace) => {
+    const regexPc = /#[0-9]{2} pc (?<address>.{16})  \/.+? (?<insert>\(BuildId: )(?<buildID>.{40})\)/gd;
+    let buildIDs = [];
+    let match;
+    while(match = regexPc.exec(stacktrace)) {
+        const buildID = match.groups.buildID;
+        const address = "0x" + match.groups.address;
+        if(!buildIDs[buildID])
+            buildIDs[buildID] = [];
+        buildIDs[buildID].push(address);
+    }
+    const analyzed = analyzeBuildIDs(buildIDs);
+    while(match = regexPc.exec(stacktrace)) {
+        const buildID = match.groups.buildID;
+        const address = "0x" + match.groups.address;
+        if(analyzed[buildID] && analyzed[buildID][address]) {
+            const result = analyzed[buildID][address];
+            const startAddr = result.ranges.sort((a, b) => a[0] - b[0])[0][0];
+            const textInsert = "(" + result.sig + "+" + (address-startAddr) + ") ";
+            const insertPos = match.indices.groups.insert[0];
+            stacktrace = stacktrace.insert(insertPos, textInsert);
+        }
+    }
+    return stacktrace;
+} 
+
+module.exports = { getBuildIDs, analyzeBuildIDs, analyzeStacktrace };
