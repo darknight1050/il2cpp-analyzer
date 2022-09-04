@@ -26,7 +26,7 @@ a:hover {
 		<ol>
 			<% for(var i=0; i < crashes.length; i++) { %>
 				<% crashId = crashes[i] %>
-				<li><a href="<%= crashId %>"><%= crashId %></a></li>
+				<li><a href="/crashes/<%= crashId %>"><%= crashId %></a></li>
 			 <% } %>
 		</ol>
 	</div>
