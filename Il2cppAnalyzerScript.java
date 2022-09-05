@@ -29,7 +29,7 @@ public class Il2cppAnalyzerScript extends GhidraScript {
 
 		File outputFile = askFile("Please Select Output File", "Choose");
 		JsonWriter jsonWriter = new JsonWriter(new FileWriter(outputFile));
-		jsonWriter.setIndent("  ");
+		//jsonWriter.setIndent("  ");
 		jsonWriter.beginObject();
 		jsonWriter.name("buildID").value(buildIDHex);
 		jsonWriter.name("functions");
