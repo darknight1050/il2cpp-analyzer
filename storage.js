@@ -15,7 +15,7 @@ const randomID = (length) => {
 const getAvailableID = async (crash) => {
     let id;
     do {
-        id = randomID(6);
+        id = randomID(4);
     } while(await Crash.findById(id).exec());
     return id;
 }
