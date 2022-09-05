@@ -75,7 +75,7 @@ const analyzeBuildIDs = (buildIDs) => {
 }
 
 const analyzeStacktrace = (stacktrace) => {
-    const regexPc = /#[0-9]{2} pc (?<address>.{16})  \/.+? (?<insert>\(BuildId: )(?<buildID>.{40})\)/gd;
+    const regexPc = /#[0-9]{2,3} pc (?<address>.{16})  \/.+? (?<insert>\(BuildId: )(?<buildID>.{40})\)/gd;
     let buildIDs = [];
     let match;
     while(match = regexPc.exec(stacktrace)) {
