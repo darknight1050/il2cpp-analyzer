@@ -93,7 +93,6 @@ module.exports = (app) => {
     app.post("/api/upload", express.json({limit: "10mb"}), async (req, res) => {
         let code = 400;
         let data;
-        console.log(req.body)
         if (_.isEmpty(req.body)) {
             data = "No body!";
         } else if (_.isEmpty(req.body.userId)) {
