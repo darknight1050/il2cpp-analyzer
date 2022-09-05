@@ -1,5 +1,6 @@
 
-const fs = require("fs");
+const fs = require("fs"),
+    gc = require('expose-gc/function');
 
 const versionsPath = "./versions";
 const availableBuildIDs = {};
@@ -17,6 +18,7 @@ const readVersion = async (path) => {
         } catch (e) {
             console.log("Error loading " + name + ": " + e);
         }
+        gc();
     });
 }
 
