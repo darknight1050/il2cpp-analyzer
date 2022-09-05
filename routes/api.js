@@ -91,19 +91,20 @@ module.exports = (app) => {
     });
 
     app.post("/api/upload", express.json({limit: "10mb"}), async (req, res) => {
+        let code = 400;
+        let data;
+        console.log(req.body)
         if (_.isEmpty(req.body)) {
-            res.status(400).setHeader("Content-Type", "text/plain").send("No body!");
-            return;
+            data = "No body!";
+        } else if (_.isEmpty(req.body.userId)) {
+            data = "No userId!";
+        } else if (_.isEmpty(req.body.stacktrace)) {
+            data = "No stacktrace!";
+        } else {
+            code = 200;
+            data = await storeCrash(req.body);
         }
-        if (_.isEmpty(req.body.userId)) {
-            res.status(400).setHeader("Content-Type", "text/plain").send("No userId!");
-            return;
-        }
-        if (_.isEmpty(req.body.stacktrace)) {
-            res.status(400).setHeader("Content-Type", "text/plain").send("No stacktrace!");
-            return;
-        }
-        res.status(200).setHeader("Content-Type", "text/plain").send(await storeCrash(req.body));
+        res.status(code).setHeader("Content-Type", "text/plain").send(data);
     });
 
 }

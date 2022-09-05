@@ -2,25 +2,25 @@
 <head>
 <style>
 html {
-	background-color: #0d1117;
+    background-color: #0d1117;
 }
 
 .main {
-	display: grid;
-	grid-template-rows: 1fr 1fr;
-	height: 100%;
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    height: 100%;
 }
 
 textarea {
-	color: #ffa657;
-	background-color: #0d1117;
-	border-color: #30363d;
-	border-radius: 6px;
-	white-space: pre;
-	overflow: auto;
-	margin-top: 8px;
-	width: 100%;
-	resize: none;
+    color: #ffa657;
+    background-color: #0d1117;
+    border-color: #30363d;
+    border-radius: 6px;
+    white-space: pre;
+    overflow: auto;
+    margin-top: 8px;
+    width: 100%;
+    resize: none;
 }
 
 textarea:focus {
@@ -28,60 +28,61 @@ textarea:focus {
 }
 
 textarea::-webkit-scrollbar {
-	width: 18px;
+    width: 18px;
 }
 
 textarea::-webkit-scrollbar-corner {
-	background: #161b22;
+    background: #161b22;
 }
 
 textarea::-webkit-scrollbar-track {
-	background: #161b22;
+    background: #161b22;
 }
 
 textarea::-webkit-scrollbar-thumb {
-	background-color: #30363d;
-	border: 3px solid #161b22;
-	border-radius: 16px;
+    background-color: #30363d;
+    border: 3px solid #161b22;
+    border-radius: 16px;
 }
 
 </style>
 </head>
 <body>
-	<div class="main">
-		<textarea id="input" name="input" spellcheck="false"></textarea>
-		<textarea id="output" name="output" spellcheck="false" readonly></textarea>
-	</div>
+    <div class="main">
+        <textarea id="input" name="input" spellcheck="false"></textarea>
+        <textarea id="output" name="output" spellcheck="false" readonly></textarea>
+    </div>
     <script type="text/javascript">
-		var input = document.getElementById("input");
-		var output = document.getElementById("output");
-		var analyze = async _ => {
-			try {
-				if(input.value.length > 0) {
-					let body = { stacktrace: input.value };
-					if(input.value.startsWith("http"))
-						body = { url: input.value };
-					fetch("/api/analyze", {
-							method: "POST",
-							headers: {
-								Accept: "application/json",
-								"Content-Type": "application/json",
-							},
-							body: JSON.stringify(body)
-					})
-					.then(response => response.json())
-					.then(data => {
-						if(data.error) {
-							output.value = data.error;
-						} else {
-							output.value = data.stacktrace;
-						}
-					});
-				}
-			} catch(err) {
-				console.error(`Error: ${err}`);
-			}
-		};
-		input.addEventListener("input", analyze);
-	</script>
+        var input = document.getElementById("input");
+        var output = document.getElementById("output");
+        var analyze = async _ => {
+            try {
+                if(input.value.length > 0) {
+                    let body = { stacktrace: input.value };
+                    if(input.value.startsWith("http"))
+                        body = { url: input.value };
+                    fetch("/api/analyze", {
+                            method: "POST",
+                            headers: {
+                                Accept: "application/json",
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify(body)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if(data.error) {
+                            output.value = data.error;
+                        } else {
+                            output.value = data.stacktrace;
+                        }
+                    });
+                }
+            } catch(err) {
+        		console.error("Error: " + err);
+            }
+        };
+        input.addEventListener("input", analyze);
+    </script>
+</body>
 </html>

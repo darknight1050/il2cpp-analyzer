@@ -1,5 +1,4 @@
-const express = require("express"), 
-    { getCrashes, getCrash } = require("../storage");
+const { getCrashes } = require("../storage"); 
 
 module.exports = (app) => {
     app.get("/", async (req, res) => {
@@ -7,7 +6,7 @@ module.exports = (app) => {
     });
 
     app.get("/crashes", async (req, res) => {
-        res.render("crashes", { crashes: await getCrashes() });
+        res.render("crashes");
     });
 
     app.get("/crashes/:crashId", async (req, res) => {
@@ -15,7 +14,6 @@ module.exports = (app) => {
             res.redirect("./" + (await getCrashes())[0].crashId);
             return;
         }
-        const crash = await getCrash(req.params.crashId);
-        res.render("crash", { crash: crash });
+        res.render("crash", { crashId: req.params.crashId });
     });
 }
