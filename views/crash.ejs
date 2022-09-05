@@ -49,6 +49,6 @@ textarea::-webkit-scrollbar-thumb {
 </head>
 <body>
 	<div class="main">
-		<textarea id="output" name="output" spellcheck="false" readonly><%= crash %> </textarea>
+		<textarea id="output" name="output" spellcheck="false" readonly><% if(crash) { %><%= crash.stacktrace %><% } else{ %>Not found<% } %></textarea>
 	</div>
 </html>

@@ -1,10 +1,5 @@
-const fs = require("fs");
-
-const crashesPath = "./crashes/";
-
-if(!fs.existsSync(crashesPath)) {
-    fs.mkdirSync(crashesPath);
-}
+const { analyzeStacktrace } = require("./analyzer"),
+    Crash = require("./dbmodels/crash");
 
 //https://stackoverflow.com/a/1349426
 const randomID = (length) => {
@@ -17,39 +12,28 @@ const randomID = (length) => {
     return result;
 }
 
-const getAvailableID = (crash) => {
-    let id = randomID(6);
-    while(fs.existsSync(crashesPath + id)) {
+const getAvailableID = async (crash) => {
+    let id;
+    do {
         id = randomID(6);
-    }
+    } while(await Crash.findById(id).exec());
     return id;
 }
 
-const getCrashes = () => {
-    let crashes = [];
-    const files = fs.readdirSync(crashesPath, { withFileTypes: true });
-    files.forEach(file => {
-        if(file.isFile())
-            crashes.push(file.name);
-    });
-    crashes.sort((a, b) => {
-        return fs.statSync(crashesPath + b).mtime - fs.statSync(crashesPath + a).mtime;
-    });
-    return crashes;
+const getCrashes = async () => {
+    return await Crash.find().sort({ uploadDate: -1 }).select("crashId userId uploadDate").exec();
 }
 
-const getCrash = (crashId) => {
-    if(!fs.existsSync(crashesPath + crashId))
-        return;
-    return fs.readFileSync(crashesPath + crashId);
+const getCrash = async (crashId) => {
+    return Crash.findById(crashId).exec();
 }
 
-const storeCrash = (crash) => {
-    const crashId = getAvailableID();
-    fs.writeFile(crashesPath + crashId, crash, (err) => {
-        if (err) throw err;
-        console.log("Stored crash: " + crashId);
-    });
+const storeCrash = async (crash) => {
+    const crashId = await getAvailableID();
+    const write = async (crashId, crash) => {
+        new Crash( { crashId: crashId, userId: crash.userId, stacktrace: analyzeStacktrace(crash.stacktrace), uploadDate: Date.now() }).save();
+    };
+    write(crashId, crash);
     return crashId;
 }
 

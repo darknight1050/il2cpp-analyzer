@@ -1,7 +1,13 @@
 const http = require("http"),
     express = require("express"),
     app = express(),
-    cors = require("cors");
+    cors = require("cors"),
+    mongoose = require("mongoose")
+    Config = require("./config");
+
+mongoose.connect(process.env.MONGODB_URI)
+.then(()=>console.log("Mongoose connected."))
+.catch(e=>console.log(e));;
 
 const server = http.createServer(app);
 

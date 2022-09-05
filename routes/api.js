@@ -73,16 +73,16 @@ module.exports = (app) => {
     });
 
     app.get("/api/crashes", async (req, res) => {
-        res.status(200).json(getCrashes());
+        res.status(200).json(await getCrashes());
     });
 
     app.get("/api/crashes/:crashId", async (req, res) => {
         if(req.params.crashId === "latest") {
-            res.redirect("./" + getCrashes()[0]);
+            res.redirect("./" + (await getCrashes())[0].crashId);
             return;
         }
 
-        const crash = getCrash(req.params.crashId);
+        const crash = await getCrash(req.params.crashId);
         if(crash) {
             res.status(200).setHeader("Content-Type", "text/plain").send(crash);
         } else {
@@ -90,8 +90,20 @@ module.exports = (app) => {
         }
     });
 
-    app.post("/api/upload", express.text({limit: "10mb"}), async (req, res) => {
-        res.status(200).setHeader("Content-Type", "text/plain").send(storeCrash(analyzeStacktrace(req.body)));
+    app.post("/api/upload", express.json({limit: "10mb"}), async (req, res) => {
+        if (_.isEmpty(req.body)) {
+            res.status(400).setHeader("Content-Type", "text/plain").send("No body!");
+            return;
+        }
+        if (_.isEmpty(req.body.userId)) {
+            res.status(400).setHeader("Content-Type", "text/plain").send("No userId!");
+            return;
+        }
+        if (_.isEmpty(req.body.stacktrace)) {
+            res.status(400).setHeader("Content-Type", "text/plain").send("No stacktrace!");
+            return;
+        }
+        res.status(200).setHeader("Content-Type", "text/plain").send(await storeCrash(req.body));
     });
 
 }
