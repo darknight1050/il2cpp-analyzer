@@ -81,8 +81,7 @@ module.exports = (app) => {
             res.redirect("./" + (await getCrashes())[0].crashId);
             return;
         }
-
-        const crash = await getCrash(req.params.crashId);
+        const crash = await getCrash(req.params.crashId, req.query.original?.toLowerCase() === "true" ? true : false);
         if(crash) {
             res.status(200).setHeader("Content-Type", "text/plain").send(crash);
         } else {
