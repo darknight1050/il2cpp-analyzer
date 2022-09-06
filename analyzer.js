@@ -1,7 +1,8 @@
 
 const fs = require("fs"),
     fsPath = require("path"),
-    gc = require("expose-gc/function");
+    gc = require("expose-gc/function"),
+    { readELF } = require("./elfparser");
 
 const versionsPath = "./versions";
 const availableBuildIDs = {};
@@ -19,6 +20,9 @@ const readVersion = async (path) => {
                         console.log("Loaded " + name + ": " + buildID);
                         availableBuildIDs[buildID] = name;
                     }
+                break;
+                case "so":
+                    const elf = readELF(buffer);
                 break;
                 default:
                     console.log("File has unknown extension: " + name);
