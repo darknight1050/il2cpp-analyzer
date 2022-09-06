@@ -31,7 +31,7 @@ const getCrash = async (crashId) => {
 const storeCrash = async (crash) => {
     const crashId = await getAvailableID();
     const write = async (crashId, crash) => {
-        new Crash( { crashId: crashId, userId: crash.userId, stacktrace: analyzeStacktrace(crash.stacktrace), uploadDate: Date.now() }).save();
+        new Crash( { crashId: crashId, userId: crash.userId, original: crash.stacktrace, stacktrace: analyzeStacktrace(crash.stacktrace), uploadDate: Date.now() }).save();
     };
     write(crashId, crash);
     return crashId;

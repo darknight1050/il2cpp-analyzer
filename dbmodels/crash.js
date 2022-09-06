@@ -4,8 +4,9 @@ const crashSchema = new mongoose.Schema(
     {
         _id: { type: String, required: true, alias: "crashId" },
         userId: { type: String, required: true, index: true },
-        stacktrace: { type: String, required: true },
+        original: { type: String, required: true },
         uploadDate: { type: Date, required: true },
+        stacktrace: { type: String },
     },
     { strict: false }
 );
