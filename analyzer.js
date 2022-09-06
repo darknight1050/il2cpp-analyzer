@@ -1,7 +1,7 @@
 
 const fs = require("fs"),
     fsPath = require("path"),
-    gc = require("expose-gc/function"),
+    gc = require("expose-gc/function");
 
 const versionsPath = "./versions";
 const availableBuildIDs = {};
