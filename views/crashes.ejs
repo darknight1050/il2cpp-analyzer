@@ -41,7 +41,7 @@ a:hover {
         ul.appendChild(li);
     }
     try {
-        fetch("/api/crashes")
+        fetch("/api/crashes?limit=200")
         .then(response => response.json())
         .then(crashes => {
             crashes.forEach(crash => addCrash(crash));

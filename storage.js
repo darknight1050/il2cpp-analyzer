@@ -20,8 +20,8 @@ const getAvailableID = async (crash) => {
     return id;
 }
 
-const getCrashes = async () => {
-    return await Crash.find().sort({ uploadDate: -1 }).select("crashId userId uploadDate").exec();
+const getCrashes = async (limit) => {
+    return await Crash.find().sort({ uploadDate: -1 }).limit(limit).select("crashId userId uploadDate").exec();
 }
 
 const getCrash = async (crashId) => {
