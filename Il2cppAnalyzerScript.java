@@ -12,7 +12,11 @@ import ghidra.program.model.listing.*;
 import ghidra.app.util.bin.format.elf.GnuBuildIdSection;
 
 public class Il2cppAnalyzerScript extends GhidraScript {
-
+	
+	public PrintWriter demangleWriter;
+	public InputStream is;
+    public BufferedReader demangleReader;
+	
 	@Override
 	public void run() throws Exception {
 
@@ -27,6 +31,12 @@ public class Il2cppAnalyzerScript extends GhidraScript {
 		}
 		String buildIDHex = bytesToHex(GnuBuildIdSection.fromProgram(getCurrentProgram()).getDescription());
 
+		Process p = Runtime.getRuntime().exec("c++filt");
+		
+        demangleWriter = new PrintWriter(p.getOutputStream());
+		is = p.getInputStream();
+        demangleReader = new BufferedReader(new InputStreamReader(is));
+		
 		File outputFile = askFile("Please Select Output File", "Choose");
 		JsonWriter jsonWriter = new JsonWriter(new FileWriter(outputFile));
 		//jsonWriter.setIndent("  ");
@@ -43,8 +53,8 @@ public class Il2cppAnalyzerScript extends GhidraScript {
 			Address entry = function.getEntryPoint();
 			
 			jsonWriter.beginObject();
-			jsonWriter.name("name").value(function.getName());
-			jsonWriter.name("sig").value(function.getSignature().getPrototypeString().replace(" *", "*"));
+			jsonWriter.name("name").value(demangle(function.getName()));
+			jsonWriter.name("sig").value(demangle(function.getName(), function.getSignature().getPrototypeString().replace(" *", "*")));
 			jsonWriter.name("ranges");
 			jsonWriter.beginArray();
 			AddressRangeIterator iterRange = function.getBody().getAddressRanges();
@@ -63,6 +73,9 @@ public class Il2cppAnalyzerScript extends GhidraScript {
 		jsonWriter.endObject();
 		jsonWriter.close();
 
+		demangleWriter.close();
+		demangleReader.close();
+		p.destroy();
 		println("Wrote functions to " + outputFile);
 		
 		println("Done!");
@@ -78,4 +91,50 @@ public class Il2cppAnalyzerScript extends GhidraScript {
 		}
 		return new String(hexChars, StandardCharsets.UTF_8);
 	}
+	
+	public String demangle(String name, String mangled) throws IOException {
+		if(!isMangled(name))
+			return mangled;
+		
+		int index = mangled.indexOf("(");
+		if(index > 0)
+			mangled = mangled.substring(0, index);
+		demangleWriter.println(mangled);
+		demangleWriter.flush();
+		int c = 0;
+		while(is.available() < 1 && !monitor.isCancelled() && c < 1000000) {
+			c++;
+		}
+		if(is.available() > 0 && !monitor.isCancelled()){
+			String demangled = demangleReader.readLine();
+			if(name.equals(mangled)) {
+				index = demangled.indexOf("(");
+				if(index > 0)
+					demangled = demangled.substring(0, index);
+			}
+				
+			println(mangled + " -> " + demangled);
+			return demangled;
+		}
+		return mangled;
+	}
+	
+	public String demangle(String name) throws IOException {
+		return demangle(name, name);
+	}
+	
+	public boolean isMangled(String mangled) {
+
+		return 
+			mangled.startsWith("_Z") ||
+			mangled.startsWith("__Z") ||
+			mangled.startsWith("h__") ||
+			mangled.startsWith("?") ||
+			mangled.startsWith("_GLOBAL_.I.") ||
+			mangled.startsWith("_GLOBAL_.D.") ||
+			mangled.startsWith("_GLOBAL__I__Z") ||
+			mangled.startsWith("_GLOBAL__D__Z");
+
+	}
+	
 }
