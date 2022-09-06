@@ -1,6 +1,7 @@
 
 const fs = require("fs"),
-    gc = require('expose-gc/function');
+    fsPath = require("path"),
+    gc = require("expose-gc/function"),
 
 const versionsPath = "./versions";
 const availableBuildIDs = {};
@@ -9,12 +10,21 @@ const readVersion = async (path) => {
     fs.readFile(path, (err, buffer) => {
         const name = path.substring(versionsPath.length + 1);
         try {
-            const json = JSON.parse(buffer);
-            if(json.buildID !== undefined) {
-                const buildID = json.buildID.toLocaleLowerCase();
-                console.log("Loaded " + name + ": " + buildID);
-                availableBuildIDs[buildID] = name;
+            const extension = fsPath.extname(name).substring(1);
+            switch(extension) {
+                case "json":
+                    const json = JSON.parse(buffer);
+                    if(json.buildID !== undefined) {
+                        const buildID = json.buildID.toLocaleLowerCase();
+                        console.log("Loaded " + name + ": " + buildID);
+                        availableBuildIDs[buildID] = name;
+                    }
+                break;
+                default:
+                    console.log("File has unknown extension: " + name);
+                break;
             }
+            
         } catch (e) {
             console.log("Error loading " + name + ": " + e);
         }
@@ -37,7 +47,7 @@ const readVersionsDir = async (path) => {
 readVersionsDir(versionsPath);
 
 const getBuildIDs = () => {
-    return Object.values(availableBuildIDs).map(name => name.substring(0, name.length - ".json".length));
+    return Object.values(availableBuildIDs).map(name => name.substring(0, name.length - fsPath.extname(name).length));
 }
 
 const analyzeJson = (json, addresses) => {
