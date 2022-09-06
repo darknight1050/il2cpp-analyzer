@@ -24,8 +24,11 @@ const getCrashes = async (limit) => {
     return await Crash.find().sort({ uploadDate: -1 }).limit(limit).select("crashId userId uploadDate").exec();
 }
 
-const getCrash = async (crashId) => {
-    return Crash.findById(crashId).exec();
+const getCrash = async (crashId, includeOriginal = false) => {
+    let statement = Crash.findById(crashId);
+    if(!includeOriginal)
+        statement = statement.select("-original");
+    return statement.exec();
 }
 
 const storeCrash = async (crash) => {
