@@ -13,6 +13,7 @@ html {
 
 a {
     text-decoration: none;
+    display: flex;
 }
 
 a, ol {
@@ -21,6 +22,22 @@ a, ol {
 
 a:hover {
     color: #cf8647;
+}
+
+.coloumn {
+    margin: 0 8 0 0;
+}
+
+.crashId {
+    width: 72px;
+}
+
+.date {
+    width: 172px;
+}
+
+.userId {
+    width: auto;
 }
 
 </style>
@@ -36,7 +53,21 @@ a:hover {
         const li = document.createElement("li");
         const a = document.createElement("a");
         a.setAttribute("href", "/crashes/" + crash.crashId);
-        a.innerText = crash.crashId + " - " + new Date(crash.uploadDate).toLocaleString() + " - " + crash.userId;
+        const crashId = document.createElement("div");
+        crashId.classList.add("coloumn");
+        crashId.classList.add("crashId");
+        crashId.innerText = crash.crashId;
+        const date = document.createElement("div");
+        date.classList.add("coloumn");
+        date.classList.add("date");
+        date.innerText = new Date(crash.uploadDate).toLocaleString();
+        const userId = document.createElement("div");
+        userId.classList.add("coloumn");
+        userId.classList.add("userId");
+        userId.innerText = crash.userId;
+        a.appendChild(crashId);
+        a.appendChild(date);
+        a.appendChild(userId);
         li.appendChild(a);
         ul.appendChild(li);
     }
