@@ -31,8 +31,8 @@ a:hover {
     </div>
 </body>
 <script>
+    const ul = document.getElementById("crashes");
     const addCrash = (crash) => {
-        const ul = document.getElementById("crashes");
         const li = document.createElement("li");
         const a = document.createElement("a");
         a.setAttribute("href", "/crashes/" + crash.crashId);
@@ -40,14 +40,19 @@ a:hover {
         li.appendChild(a);
         ul.appendChild(li);
     }
-    try {
-        fetch("/api/crashes?limit=200")
-        .then(response => response.json())
-        .then(crashes => {
-            crashes.forEach(crash => addCrash(crash));
-        });
-    } catch(err) {
-        console.error("Error: " + err);
+    const fetchCrashes = async () => {
+        try {
+            ul.innerHTML = "";
+            fetch("/api/crashes?limit=200")
+            .then(response => response.json())
+            .then(crashes => {
+                crashes.forEach(crash => addCrash(crash));
+            });
+        } catch(err) {
+            console.error("Error: " + err);
+        }
     }
+    fetchCrashes();
+    setInterval(fetchCrashes, 10 * 1000);
 </script>
 </html>
