@@ -20,8 +20,19 @@ const getAvailableID = async (crash) => {
     return id;
 }
 
-const getCrashes = async (limit) => {
-    return await Crash.find().sort({ uploadDate: -1 }).limit(limit).select("crashId userId uploadDate").exec();
+const getCrashes = async (filter) => {
+    const limit = filter.limit;
+    const userId = filter.userId;
+    let statement = Crash.find().sort({ uploadDate: -1 }).select("crashId userId uploadDate");
+    if(limit) {
+        try {
+            statement = statement.limit(limit);
+        } catch (error) {
+        }
+    }
+    if(userId)
+        statement = statement.find({ userId: userId });
+    return await statement.exec();
 }
 
 const getCrash = async (crashId, includeOriginal = false) => {

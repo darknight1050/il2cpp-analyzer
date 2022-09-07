@@ -73,7 +73,7 @@ module.exports = (app) => {
     });
 
     app.get("/api/crashes", async (req, res) => {
-        res.status(200).json(await getCrashes(req.query.limit || 0));
+        res.status(200).json(await getCrashes(req.query));
     });
 
     app.get("/api/crashes/:crashId", async (req, res) => {

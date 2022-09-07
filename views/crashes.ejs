@@ -74,7 +74,7 @@ a:hover {
     const fetchCrashes = async () => {
         try {
             ul.innerHTML = "";
-            fetch("/api/crashes?limit=200")
+            fetch("/api/crashes?limit=200&" + new URLSearchParams(window.location.search).toString())
             .then(response => response.json())
             .then(crashes => {
                 crashes.forEach(crash => addCrash(crash));
