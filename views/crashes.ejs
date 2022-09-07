@@ -36,7 +36,7 @@ a:hover {
         const li = document.createElement("li");
         const a = document.createElement("a");
         a.setAttribute("href", "/crashes/" + crash.crashId);
-        a.innerText = crash.crashId + " (" + new Date(crash.uploadDate).toLocaleString() + ")";
+        a.innerText = crash.crashId + " - " + new Date(crash.uploadDate).toLocaleString() + " - " + crash.userId;
         li.appendChild(a);
         ul.appendChild(li);
     }
