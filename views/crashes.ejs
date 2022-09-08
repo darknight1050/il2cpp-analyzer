@@ -11,12 +11,12 @@ html {
     height: 100%;
 }
 
-a {
-    text-decoration: none;
+div {
     display: flex;
 }
 
 a, ol {
+    text-decoration: none;
     color: #ffa657;
 }
 
@@ -25,7 +25,7 @@ a:hover {
 }
 
 .coloumn {
-    margin: 0 8 0 0;
+    margin: 0 6 0 6;
 }
 
 .crashId {
@@ -51,24 +51,25 @@ a:hover {
     const ul = document.getElementById("crashes");
     const addCrash = (crash) => {
         const li = document.createElement("li");
-        const a = document.createElement("a");
-        a.setAttribute("href", "/crashes/" + crash.crashId);
-        const crashId = document.createElement("div");
+        const div = document.createElement("div");
+        const crashId = document.createElement("a");
         crashId.classList.add("coloumn");
         crashId.classList.add("crashId");
+        crashId.setAttribute("href", "/crashes/" + crash.crashId);
         crashId.innerText = crash.crashId;
         const date = document.createElement("div");
         date.classList.add("coloumn");
         date.classList.add("date");
         date.innerText = new Date(crash.uploadDate).toLocaleString();
-        const userId = document.createElement("div");
+        const userId = document.createElement("a");
+        userId.setAttribute("href", "/crashes?userId=" + crash.userId);
         userId.classList.add("coloumn");
         userId.classList.add("userId");
         userId.innerText = crash.userId;
-        a.appendChild(crashId);
-        a.appendChild(date);
-        a.appendChild(userId);
-        li.appendChild(a);
+        div.appendChild(crashId);
+        div.appendChild(date);
+        div.appendChild(userId);
+        li.appendChild(div);
         ul.appendChild(li);
     }
     const fetchCrashes = async () => {
