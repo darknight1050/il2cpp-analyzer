@@ -7,6 +7,7 @@ const crashSchema = new mongoose.Schema(
         original: { type: String, required: true },
         uploadDate: { type: Date, required: true },
         stacktrace: { type: String },
+        log: { type: String },
     },
     { strict: false }
 );
