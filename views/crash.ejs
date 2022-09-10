@@ -93,10 +93,10 @@ textarea::-webkit-scrollbar-thumb {
         if(crashData) {
             switch(selected) {
                 case "crash":
-                    output.value = crashData.stacktrace;
+                    output.value = crashData.stacktrace || "Not Found!";
                     break;
                 case "log":
-                    output.value = crashData.log;
+                    output.value = crashData.log || "Not Found!";
                     break;
             }
         } else {
