@@ -1,13 +1,7 @@
 const http = require("http"),
     express = require("express"),
     app = express(),
-    cors = require("cors"),
-    mongoose = require("mongoose")
-    Config = require("./config");
-
-mongoose.connect(process.env.MONGODB_URI)
-.then(()=>console.log("Mongoose connected."))
-.catch(e=>console.log(e));;
+    cors = require("cors");
 
 const server = http.createServer(app);
 
@@ -27,5 +21,5 @@ app.use(async (err, req, res, next) => {
 });
 
 server.listen(process.env.PORT || 5000, () =>
-    console.log(`Server has started.`)
+    console.log("Server has started.")
 );

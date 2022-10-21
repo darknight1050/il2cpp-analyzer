@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "set MONGODB_URI=mongodb://127.0.0.1:27017/analyzer?ssl=false && nodemon index.js"
+    "dev": "nodemon index.js"
   },
   "keywords": [],
   "author": "darknight1050",
@@ -15,7 +15,7 @@
     "ejs": "^3.1.8",
     "expose-gc": "^1.0.0",
     "express": "^4.17.1",
-    "lodash": "^4.17.21",
-    "mongoose": "^6.5.4"
+    "firebase-admin": "^11.2.0",
+    "lodash": "^4.17.21"
   }
 }
