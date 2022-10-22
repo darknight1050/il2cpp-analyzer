@@ -11,6 +11,25 @@ const firestore = admin.firestore();
 firestore.settings({ ignoreUndefinedProperties: true })
 const crashesCollection = firestore.collection("crashes");
 
+const defaultLimit = 200;
+
+let cachedCrashes = [];
+
+const observer = crashesCollection.orderBy("uploadDate", "desc").limit(defaultLimit).onSnapshot(querySnapshot => {
+    cachedCrashes = querySnapshot.docs.map(doc => {
+        let origData = doc.data();
+        let data = {
+            crashId: doc.id,
+            userId: origData.userId,
+            uploadDate: origData.uploadDate,
+        }
+        return data;
+    });
+}, err => {
+    console.log(`Encountered error: ${err}`);
+});
+
+
 //https://stackoverflow.com/a/1349426
 const randomID = (length) => {
     let result = "";
@@ -33,6 +52,9 @@ const getAvailableID = async (crash) => {
 const getCrashes = async (filter) => {
     const limit = filter.limit;
     const userId = filter.userId;
+    if(limit == defaultLimit && userId == undefined) {
+        return cachedCrashes;
+    }
     let statement = crashesCollection;
     statement = statement.orderBy("uploadDate", "desc").select("crashId", "userId", "uploadDate");
     if(limit) {
