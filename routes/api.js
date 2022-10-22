@@ -1,6 +1,6 @@
 const _ = require("lodash"),
     { getBuildIDs, analyzeBuildIDs, analyzeStacktrace } = require("../analyzer"),
-    { storeCrash, getCrashes, getCrash } = require("../storage"),
+    { storeCrash, getCrashes, getCrash } = require("../storage/storageFirestore"),
     axios = require("axios"),
     express = require("express");
 

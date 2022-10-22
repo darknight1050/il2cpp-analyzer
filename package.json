@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon index.js"
+    "dev": "set MONGODB_URI=mongodb://127.0.0.1:27017/analyzer?ssl=false && nodemon index.js"
   },
   "keywords": [],
   "author": "darknight1050",

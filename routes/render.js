@@ -1,4 +1,4 @@
-const { getCrashes } = require("../storage"); 
+const { getCrashes } = require("../storage/storageFirestore"); 
 
 module.exports = (app) => {
     app.get("/", async (req, res) => {

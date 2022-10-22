@@ -1,7 +1,7 @@
-const { analyzeStacktrace } = require("./analyzer"),
+const { analyzeStacktrace } = require("../analyzer"),
     admin = require("firebase-admin");
     
-const serviceAccount = require("./firebase.json");
+const serviceAccount = require("../firebase.json");
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
