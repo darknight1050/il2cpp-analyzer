@@ -83,6 +83,7 @@ const analyzeBuildIDs = (buildIDs) => {
         } catch (e) {
         }
     }
+    gc();
     return analyzed;
 }
 
