@@ -17,8 +17,11 @@ let cachedCrashes = [];
 
 const observer = crashesCollection.orderBy("uploadDate", "desc").limit(defaultLimit).onSnapshot(querySnapshot => {
     cachedCrashes = querySnapshot.docs.map(doc => {
+        let data = cachedCrashes.find(crash => crash.crashId === doc.id);
+        if(data !== undefined)
+            return data;
         let origData = doc.data();
-        let data = {
+        data = {
             crashId: doc.id,
             userId: origData.userId,
             uploadDate: origData.uploadDate,
@@ -52,7 +55,7 @@ const getAvailableID = async (crash) => {
 const getCrashes = async (filter) => {
     const limit = filter.limit;
     const userId = filter.userId;
-    if(limit == defaultLimit && userId == undefined) {
+    if(limit == defaultLimit && userId === undefined) {
         return cachedCrashes;
     }
     let statement = crashesCollection;
