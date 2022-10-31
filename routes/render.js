@@ -1,4 +1,4 @@
-const { getCrashes } = require("../storage/storageFirestore"); 
+const { getCrashes } = require("../storage/storageMongoDB"); 
 
 module.exports = (app) => {
     app.get("/", async (req, res) => {
