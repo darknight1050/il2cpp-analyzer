@@ -11,7 +11,7 @@ module.exports = (app) => {
 
     app.get("/crashes/:crashId", async (req, res) => {
         if(req.params.crashId === "latest") {
-            res.redirect("./" + (await getCrashes())[0].crashId);
+            res.redirect("./" + (await getCrashes({ limit: 1 }))[0].crashId);
             return;
         }
         res.render("crash", { crashId: req.params.crashId });
