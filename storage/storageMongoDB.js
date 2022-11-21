@@ -49,10 +49,15 @@ const getCrash = async (crashId, includeOriginal = false) => {
 
 const storeCrash = async (crash) => {
     const crashId = await getAvailableID();
-    const write = async (crashId, crash) => {
-        new Crash( { crashId: crashId, userId: crash.userId, original: crash.stacktrace, stacktrace: analyzeStacktrace(crash.stacktrace), log: crash.log, uploadDate: Date.now() }).save();
-    };
-    write(crashId, crash);
+    new Crash({ 
+        crashId: crashId, 
+        userId: crash.userId,
+        original: crash.stacktrace, 
+        stacktrace: analyzeStacktrace(crash.stacktrace), 
+        log: crash.log, 
+        mods: crash.mods, 
+        uploadDate: Date.now() 
+    }).save();
     return crashId;
 }
 

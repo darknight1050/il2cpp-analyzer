@@ -75,6 +75,7 @@ textarea::-webkit-scrollbar-thumb {
         <div class="tab">
             <button class="tablinks active" id="crash" onclick="updateState('crash')">Crash</button>
             <button class="tablinks" id="log" onclick="updateState('log')">Log</button>
+            <button class="tablinks" id="mods" onclick="updateState('mods')">Mods</button>
         </div>
         <textarea id="output" name="output" spellcheck="false" readonly>Loading...</textarea>
     </div>
@@ -97,6 +98,9 @@ textarea::-webkit-scrollbar-thumb {
                     break;
                 case "log":
                     output.value = crashData.log || "Not Found!";
+                    break;
+                case "mods":
+                    output.value = crashData.mods.map(mod => mod.name + " (v" + mod.version + ")").join("\n") || "Not Found!";
                     break;
             }
         } else {
