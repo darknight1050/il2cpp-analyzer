@@ -25,6 +25,8 @@ crashSchema.set("toJSON", {
 });
 
 crashSchema.index({
+    _id: 1,
+    userId: 1,
     stacktrace: "text",
 });
 

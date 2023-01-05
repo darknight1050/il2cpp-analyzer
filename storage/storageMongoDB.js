@@ -48,7 +48,7 @@ const getCrashes = async (filter) => {
     if(userId)
         statement = statement.find({ userId: userId });
     if (searchQuery) {
-        statement = statement.find({ $text: { $search: searchQuery, $caseSensitive: true }});
+        statement = statement.find({ $text: { $search: searchQuery, $caseSensitive: false }});
     }
     const result = await statement.exec();
     if(defaultRequest ) {
