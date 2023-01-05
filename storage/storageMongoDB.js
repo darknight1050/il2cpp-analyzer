@@ -28,6 +28,7 @@ const getAvailableID = async (crash) => {
 const getCrashes = async (filter) => {
     const limit = filter.limit;
     const userId = filter.userId;
+    const searchQuery = filter.search;
     let statement = Crash.find().sort({ uploadDate: -1 }).select("crashId userId uploadDate");
     if(limit) {
         try {
@@ -37,6 +38,9 @@ const getCrashes = async (filter) => {
     }
     if(userId)
         statement = statement.find({ userId: userId });
+    if (searchQuery) {
+        statement = statement.find({ $text: { $search: searchQuery, $caseSensitive: true }});
+    }
     return await statement.exec();
 }
 

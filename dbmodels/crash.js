@@ -24,4 +24,8 @@ crashSchema.set("toJSON", {
     }
 });
 
+crashSchema.index({
+    stacktrace: "text",
+});
+
 module.exports = mongoose.model("Crash", crashSchema);
