@@ -51,7 +51,7 @@ const getCrashes = async (filter) => {
         statement = statement.find({ $text: { $search: searchQuery, $caseSensitive: false }});
     }
     const result = await statement.exec();
-    if(defaultRequest ) {
+    if(defaultRequest) {
         cachedCrashes = result;
     }
     return result;
@@ -75,7 +75,11 @@ const storeCrash = async (crash) => {
         mods: crash.mods, 
         uploadDate: Date.now() 
     }).save();
-    cachedCrashes = [];
+    const updateCache = async () => { 
+        cachedCrashes = [];
+        getCrashes({limit: 200});
+    };
+    updateCache();
     return crashId;
 }
 
