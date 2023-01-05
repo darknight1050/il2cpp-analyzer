@@ -6,6 +6,11 @@ mongoose.connect(process.env.MONGODB_URI)
 .then(()=>console.log("Mongoose connected."))
 .catch(e=>console.log(e));;
 
+
+const defaultLimit = 200;
+
+let cachedCrashes = [];
+
 //https://stackoverflow.com/a/1349426
 const randomID = (length) => {
     let result = "";
@@ -29,6 +34,10 @@ const getCrashes = async (filter) => {
     const limit = filter.limit;
     const userId = filter.userId;
     const searchQuery = filter.search;
+    let defaultRequest = limit == defaultLimit && userId === undefined && searchQuery === undefined;
+    if(defaultRequest && cachedCrashes.length > 0) {
+        return cachedCrashes;
+    }
     let statement = Crash.find().sort({ uploadDate: -1 }).select("crashId userId uploadDate");
     if(limit) {
         try {
@@ -41,7 +50,11 @@ const getCrashes = async (filter) => {
     if (searchQuery) {
         statement = statement.find({ $text: { $search: searchQuery, $caseSensitive: true }});
     }
-    return await statement.exec();
+    const result = await statement.exec();
+    if(defaultRequest ) {
+        cachedCrashes = result;
+    }
+    return result;
 }
 
 const getCrash = async (crashId, includeOriginal = false) => {
@@ -62,6 +75,7 @@ const storeCrash = async (crash) => {
         mods: crash.mods, 
         uploadDate: Date.now() 
     }).save();
+    cachedCrashes = [];
     return crashId;
 }
 
