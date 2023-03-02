@@ -1,4 +1,4 @@
-const { analyzeStacktrace } = require("../analyzer"),
+const { analyzeStacktrace, getBeatsaberVersionFromStacktrace } = require("../analyzer"),
     mongoose = require("mongoose"),
     Crash = require("../dbmodels/crash");
 
@@ -105,6 +105,7 @@ const getCrashes = async (filter) => {
         userId: hit._source.userId,
         crashId: hit._id,
         uploadDate: hit._source.uploadDate,
+        gameVersion: hit._source.gameVersion,
     }))
 
     return hits;
@@ -119,6 +120,9 @@ const getCrash = async (crashId, includeOriginal = false) => {
 
 const storeCrash = async (crash) => {
     const crashId = await getAvailableID();
+    // Try to get game version from stacktrace
+    let gameVersion = getBeatsaberVersionFromStacktrace(crash.stacktrace);
+
     new Crash({
         crashId: crashId,
         userId: crash.userId,
@@ -126,6 +130,7 @@ const storeCrash = async (crash) => {
         stacktrace: analyzeStacktrace(crash.stacktrace),
         log: crash.log,
         mods: crash.mods,
+        gameVersion: gameVersion,
         uploadDate: Date.now()
     }).save();
     return crashId;

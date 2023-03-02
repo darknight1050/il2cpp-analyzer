@@ -9,6 +9,7 @@ const crashSchema = new mongoose.Schema(
         uploadDate: { type: Date, required: true, es_indexed: true, es_type: 'date'  },
         stacktrace: { type: String,  es_indexed: true  },
         log: { type: String, es_indexed: true },
+        gameVersion: { type: String, es_indexed: true, es_type: 'keyword' },
         mods: [{
             name: { type: String, required: true, es_indexed: true },
             version: { type: String, required: true, es_indexed: true  },

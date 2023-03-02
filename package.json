@@ -7,7 +7,8 @@
     "dev": "nodemon index.js",
     "importdb": "mongoimport --username=root -d analyzer -c analyzer --jsonArray --file=/docker-entrypoint-initdb.d/init-mongo-js",
     "dbindex": "nodemon dbindex.js",
-    "test": "jest"
+    "test": "jest",
+    "reanalyze": "nodemon reanalyze.js"
   },
   "keywords": [],
   "author": "darknight1050",

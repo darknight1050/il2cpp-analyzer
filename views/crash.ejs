@@ -110,6 +110,7 @@
           <p>ID: <span id="crashId">loading...</span></p>
           <p>User: <span id="userId">loading...</span></p>
           <p>Upload: <span id="uploadDate">loading...</span></p>
+          <p>Version: <span id="gameVersion">loading...</span></p>
         </div>
       </div>
 
@@ -163,13 +164,15 @@ Loading...</textarea
 
         // Set info in the header
         let userId = document.getElementById("userId");
-        userId.innerHTML = crash.userId || "Not Found!";
+        userId.innerHTML = crash.userId || "?";
         let crashId = document.getElementById("crashId");
-        crashId.innerHTML = crash.crashId || "Not Found!";
+        crashId.innerHTML = crash.crashId || "?";
         let uploadDate = document.getElementById("uploadDate");
         // Format date to be more readable
         uploadDate.innerHTML =
-          new Date(crash.uploadDate).toLocaleString() || "Not Found!";
+          new Date(crash.uploadDate).toLocaleString() || "?";
+        let gameVersion = document.getElementById("gameVersion");
+        gameVersion.innerHTML = crash.gameVersion || "?";
 
         document.title = "Crash - " + crash.crashId + " - " + crash.userId;
       })
