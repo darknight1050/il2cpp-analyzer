@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon index.js",
     "importdb": "mongoimport --username=root -d analyzer -c analyzer --jsonArray --file=/docker-entrypoint-initdb.d/init-mongo-js",
-    "dbindex": "nodemon dbindex.js"
+    "dbindex": "nodemon dbindex.js",
+    "test": "jest"
   },
   "keywords": [],
   "author": "darknight1050",
@@ -23,5 +24,8 @@
     "mongoosastic": "^5.0.0",
     "mongoose": "^6.7.0",
     "nodemon": "^2.0.20"
+  },
+  "devDependencies": {
+    "jest": "^29.4.3"
   }
 }

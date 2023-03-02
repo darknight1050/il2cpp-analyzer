@@ -1,3 +1,5 @@
+const { loadVersions } = require('./analyzer');
+
 require('dotenv').config()
 
 const http = require("http"),
@@ -23,6 +25,12 @@ app.use(async (err, req, res, next) => {
     }
 });
 let port = process.env.PORT || 5000;
-server.listen(port, () =>
+
+async function start (){
+    await loadVersions();
+    server.listen(port, () =>
     console.log(`Server has started on port: ${port}`)
 );
+}
+start();
+

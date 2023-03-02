@@ -101,9 +101,6 @@ a:hover {
 .loading.hidden { 
     display: none;
 }
-.loading pre {
-    display: none;
-}
 .loading.error {
     color: red;
 }
@@ -131,7 +128,9 @@ a:hover {
         </form>
 
         <div class="content">
-            <div class="loading"><div>Loading...</div></div>
+            <div class="loading">
+                <div>Loading...</div>
+            </div>
             <ol id="crashes">
             </ol>
         </div>
