@@ -73,7 +73,13 @@ module.exports = (app) => {
     });
 
     app.get("/api/crashes", async (req, res) => {
-        res.status(200).json(await getCrashes(req.query));
+        try {
+            let result = await getCrashes(req.query)
+            res.status(200).json(result);
+        } catch (err) {
+            res.status(400).json({message: err.message});
+        }
+        
     });
 
     app.get("/api/crashes/:crashId", async (req, res) => {
@@ -83,7 +89,7 @@ module.exports = (app) => {
         }
         const crash = await getCrash(req.params.crashId, req.query.original?.toLowerCase() === "true" ? true : false);
         if(crash) {
-            res.status(200).setHeader("Content-Type", "text/plain").send(crash);
+            res.status(200).setHeader("Content-Type", "application/json").send(crash);
         } else {
             res.status(404).end();
         }

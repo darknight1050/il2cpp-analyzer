@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "set MONGODB_URI=mongodb://127.0.0.1:27017/analyzer?ssl=false && nodemon index.js"
+    "dev": "nodemon index.js",
+    "importdb": "mongoimport --username=root -d analyzer -c analyzer --jsonArray --file=/docker-entrypoint-initdb.d/init-mongo-js",
+    "dbindex": "nodemon dbindex.js"
   },
   "keywords": [],
   "author": "darknight1050",
@@ -12,11 +14,14 @@
     "axios": "^0.26.0",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
     "ejs": "^3.1.8",
     "expose-gc": "^1.0.0",
     "express": "^4.17.1",
     "firebase-admin": "^11.2.0",
     "lodash": "^4.17.21",
-    "mongoose": "^6.7.0"
+    "mongoosastic": "^5.0.0",
+    "mongoose": "^6.7.0",
+    "nodemon": "^2.0.20"
   }
 }

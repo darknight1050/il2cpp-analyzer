@@ -127,3 +127,4 @@ dist
 .pnp.*
 
 firebase.json
+mongo-volume/

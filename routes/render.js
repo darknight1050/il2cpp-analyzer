@@ -6,7 +6,9 @@ module.exports = (app) => {
     });
 
     app.get("/crashes", async (req, res) => {
-        res.render("crashes");
+        res.render("crashes", {
+            queryParams: req.query,
+        });
     });
 
     app.get("/crashes/:crashId", async (req, res) => {
