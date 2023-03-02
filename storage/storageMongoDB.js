@@ -75,7 +75,9 @@ const getCrashes = async (filter) => {
                 "fields": [
                     "userId",
                     "stacktrace",
-                    "mods"
+                    "mods",
+                    "gameVersion",
+                    "log",
                 ],
                 "query": searchQuery,
             },

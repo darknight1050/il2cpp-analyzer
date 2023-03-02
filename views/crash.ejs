@@ -1,8 +1,18 @@
 <html>
   <head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&family=Roboto+Mono&display=swap" rel="stylesheet">
     <style>
       html {
         background-color: #0d1117;
+        font-family: 'Poppins', sans-serif;
+      }
+
+      body {
+        padding: 0;
+        margin: 0;
+        min-height: 100vh;
       }
 
       .main {
@@ -39,11 +49,12 @@
         color: #ffa657;
         background-color: #0d1117;
         border-color: #30363d;
-        border-radius: 6px;
+        border-radius: 0px;
         white-space: pre;
         overflow: auto;
         width: 100%;
         resize: none;
+        font-family: 'Roboto Mono', monospace;
       }
 
       textarea:focus {
@@ -76,15 +87,25 @@
         flex: 1;
         text-align: right;
         display: flex;
-        color: aqua;
+        color: rgb(137, 206, 206);
         align-items: center;
         justify-content: end;
+        margin-right: 10px;
       }
       .info p {
-        padding-left: 5px;
+        padding-left: 10px;
+        text-align: left;
+        font-size: 0.6rem;
       }
       .info p span {
+        margin-top: -4px;
         color: #ffa657;
+        font-size:1rem;
+      }
+
+      .userLink {
+        color: #ffa657;
+        text-decoration: none;
       }
     </style>
   </head>
@@ -107,16 +128,14 @@
           </button>
         </div>
         <div class="info">
-          <p>ID: <span id="crashId">loading...</span></p>
-          <p>User: <span id="userId">loading...</span></p>
-          <p>Upload: <span id="uploadDate">loading...</span></p>
-          <p>Version: <span id="gameVersion">loading...</span></p>
+          <p title="Crash ID">ID: <br><span id="crashId">loading...</span></p>
+          <p title="User ID">User:<br><a href="#" class="userLink"><span id="userId">loading...</span></a></p>
+          <p title="Upload date">Date: <br><span id="uploadDate">loading...</span></p>
+          <p title="Game version">Ver.: <br><span id="gameVersion">loading...</span></p>
         </div>
       </div>
 
-      <textarea id="output" name="output" spellcheck="false" readonly>
-Loading...</textarea
-      >
+      <textarea id="output" name="output" spellcheck="false" readonly>Loading...</textarea>
     </div>
   </body>
   <script>
@@ -165,14 +184,28 @@ Loading...</textarea
         // Set info in the header
         let userId = document.getElementById("userId");
         userId.innerHTML = crash.userId || "?";
+        // Link to a filter with this user ID
+        if (crash.userId) {
+          document.querySelector(".userLink").href = "/crashes/?userId=" + crash.userId;
+        }
         let crashId = document.getElementById("crashId");
         crashId.innerHTML = crash.crashId || "?";
         let uploadDate = document.getElementById("uploadDate");
         // Format date to be more readable
-        uploadDate.innerHTML =
-          new Date(crash.uploadDate).toLocaleString() || "?";
+        if (crash.uploadDate) {
+          let date = new Date(crash.uploadDate).toISOString().replace(/T/, ' ').replace(/\..+/, '');
+          uploadDate.innerHTML = date;
+        } else {
+          uploadDate.innerHTML = "?";
+        }
         let gameVersion = document.getElementById("gameVersion");
+        if (crash.gameVersion) {
+          let regex = /(\_\d*)/g;
+          // Remove the _ and the number
+          crash.gameVersion = crash.gameVersion.replace(regex, "");
+        }
         gameVersion.innerHTML = crash.gameVersion || "?";
+       
 
         document.title = "Crash - " + crash.crashId + " - " + crash.userId;
       })

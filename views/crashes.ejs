@@ -40,7 +40,11 @@ a:hover {
 }
 
 .date {
-    width: 200px;
+    width: 166px;
+}
+
+.gameVersion {
+    width: 60px;
 }
 
 .userId {
@@ -149,7 +153,9 @@ a:hover {
         const date = document.createElement("div");
         date.classList.add("coloumn");
         date.classList.add("date");
-        date.innerText = new Date(crash.uploadDate).toLocaleString();
+        date.innerText = new Date(crash.uploadDate).toISOString().
+            replace(/T/, ' ').      // replace T with a space
+            replace(/\..+/, '')     // delete the dot and everything after
         const userId = document.createElement("a");
         // Get old search params 
         let searchParams = new URLSearchParams(window.location.search);
@@ -158,8 +164,21 @@ a:hover {
         userId.classList.add("coloumn");
         userId.classList.add("userId");
         userId.innerText = crash.userId;
+        
+        // Get game version
+        const gameVersionDiv = document.createElement("div");
+        gameVersionDiv.classList.add("coloumn");
+        gameVersionDiv.classList.add("gameVersion");
+        if (crash.gameVersion) {
+            let regex = /(\_\d*)/g;
+            // Remove the _ and the number
+            crash.gameVersion = crash.gameVersion.replace(regex, "");
+        }
+        gameVersionDiv.innerText = crash.gameVersion || "?";
+
         div.appendChild(crashId);
         div.appendChild(date);
+        div.appendChild(gameVersionDiv);
         div.appendChild(userId);
         li.appendChild(div);
         ul.appendChild(li);
