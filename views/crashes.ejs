@@ -127,7 +127,13 @@ a:hover {
             <!-- username -->
             <input type="text" name="userId" placeholder="User ID" <% if (queryParams.userId){%>value="<%=queryParams.userId %>"<% } %> />
             <input type="number" name="limit" placeholder="Limit" max="9999" min="10" <% if (queryParams.limit){%>value="<%= queryParams.limit || "200" %>"<% } %> />
-            
+            <select name="version">
+                <option value="all" <% if (!queryParams.version || queryParams.version == "all" ){ %> selected <% } %> >All</option>
+                <% for (let version of bsVersions) { %>
+                    <option value="<%= version.value %>" <% if (queryParams.version && queryParams.version == version.value ){ %> selected <% } %> ><%= version.name %></option>
+                <% } %>
+            </select>    
+
             <input type="submit" value="Search" />
         </form>
 
@@ -166,15 +172,23 @@ a:hover {
         userId.innerText = crash.userId;
         
         // Get game version
-        const gameVersionDiv = document.createElement("div");
+        const gameVersionDiv = document.createElement(crash.gameVersion? "a":"div");
         gameVersionDiv.classList.add("coloumn");
         gameVersionDiv.classList.add("gameVersion");
+        
+        // If we have a game version, add a link to it
         if (crash.gameVersion) {
+            let searchParams = new URLSearchParams(window.location.search);
+            searchParams.set("version", crash.gameVersion);
+            gameVersionDiv.setAttribute("href", "/crashes?" + searchParams.toString());
+
+            // Remove the _ and the number to show in the ui
             let regex = /(\_\d*)/g;
             // Remove the _ and the number
-            crash.gameVersion = crash.gameVersion.replace(regex, "");
+            gameVersionDiv.innerText = crash.gameVersion.replace(regex, "");
+        } else {
+            gameVersionDiv.innerText = "?";
         }
-        gameVersionDiv.innerText = crash.gameVersion || "?";
 
         div.appendChild(crashId);
         div.appendChild(date);

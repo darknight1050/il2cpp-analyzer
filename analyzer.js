@@ -119,6 +119,9 @@ const analyzeStacktrace = (stacktrace) => {
     return stacktrace;
 }
 
+const getBeatSaberVersions = () => {
+    return beatSaberVersions;
+}
 // TODO: Replace with something generic
 const getBeatsaberVersionFromStacktrace = (stacktrace) => {
     // Grab build ids
@@ -139,4 +142,4 @@ const getBeatsaberVersionFromStacktrace = (stacktrace) => {
     }
 }
 
-module.exports = { getBuildIDs, analyzeBuildIDs, analyzeStacktrace, loadVersions, getBeatsaberVersionFromStacktrace };
+module.exports = { getBuildIDs, analyzeBuildIDs, analyzeStacktrace, loadVersions, getBeatsaberVersionFromStacktrace, getBeatSaberVersions };

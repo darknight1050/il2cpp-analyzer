@@ -33,6 +33,7 @@ const getCrashes = async (filter) => {
     let userId = filter.userId;
     let searchQuery = filter.search;
     let dateLimit = filter.date | 0; // 0 - All, 1 - Last 24h, 7 - Last week, 30 - Last month, 365 - Last year
+    let version = filter.version || "all";
 
     // Check all values for null
     let isNull = {
@@ -40,6 +41,7 @@ const getCrashes = async (filter) => {
         userId: userId === undefined || userId === "",
         searchQuery: searchQuery === undefined || searchQuery === "",
         dateLimit: dateLimit == 0,
+        version: version === "all",
     }
 
     // Fix types for mongoose
@@ -73,10 +75,8 @@ const getCrashes = async (filter) => {
         SearchParams.query.bool.must.push({
             "query_string": {
                 "fields": [
-                    "userId",
                     "stacktrace",
                     "mods",
-                    "gameVersion",
                     "log",
                 ],
                 "query": searchQuery,
@@ -88,6 +88,13 @@ const getCrashes = async (filter) => {
     if (!isNull.userId) {
         SearchParams.query.bool.filter.push({
             "term": { "userId": userId.toLowerCase() },
+        })
+    };
+
+    // Filter by game version
+    if (!isNull.version) {
+        SearchParams.query.bool.filter.push({
+            "term": { "gameVersion": version.toLowerCase() },
         })
     };
 
