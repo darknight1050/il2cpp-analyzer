@@ -76,7 +76,7 @@ const getCrashes = async (filter) => {
             "query_string": {
                 "fields": [
                     "stacktrace",
-                    "mods",
+                    "mods.*",
                     "log",
                 ],
                 "query": searchQuery,
