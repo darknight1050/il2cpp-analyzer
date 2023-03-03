@@ -19,13 +19,13 @@ async function syncIndex() {
 
         stream.on('close', async function () {
             console.log('indexed ' + count + ' documents!');
+            mongoose.disconnect();;
         });
 
         stream.on('error', function (err) {
             console.log(err);
         });
 
-        mongoose.disconnect();;
     });
 
 

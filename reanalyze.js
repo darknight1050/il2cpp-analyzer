@@ -8,7 +8,7 @@ const { getBeatsaberVersionFromStacktrace, loadVersions } = require('./analyzer'
 async function analyze() {
     // Load the versions of older crashes
     await loadVersions();
-    await mongoose.connect(process.env.MONGODB_URI, async () => {
+    mongoose.connect(process.env.MONGODB_URI, async () => {
         // Find all crashes with empty gameversion
         const cursor = crash.find({ gameVersion: undefined }).cursor();
         let count = 0;
