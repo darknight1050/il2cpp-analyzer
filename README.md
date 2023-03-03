@@ -25,34 +25,39 @@ Simple query (will search for exact match in all fields):
 "neko para"
 ```
 
-Filter by mod name:
+Query by mod name:
 ```bash
 mods.name: "Mod name"
 ```
 
-Filter by mod version (without the v):
+Query by mod version (without the v):
 ```bash
 mods.version: "1.0.0"
 ```
 
-Filter by mod name and version:
+Query by mod name and version:
 ```
 mods.name: "Mod name" AND mods.version: "1.0.0"
 ```
 
-Filter all the crashes with mods list and logs uploaded:
+Query all the crashes with mods list and logs uploaded:
 ```
 _exists_: mods AND _exists_: log
 ```
 
-Filter all the crashes with mods list and a phrase in log
+Query all the crashes with mods list and a phrase in log
 ```
 _exists_: mods AND log: "neko para"
 ```
 
-Filter all the crashes with mods list and a phrase in log, but not in stacktrace
+Query all the crashes with mods list and a phrase in log, but not in stacktrace
 ```
 _exists_: mods AND log: "neko para" AND NOT stacktrace: "neko para"
+```
+
+Query to include multiple mods and exclude one:
+```
+mods.name: Mod1 AND mods.name: Nya AND NOT mods.name: Qosmetics
 ```
 
 
