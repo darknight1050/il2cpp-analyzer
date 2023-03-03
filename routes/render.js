@@ -24,7 +24,7 @@ module.exports = (app) => {
             const versions = getBeatSaberVersions();
             if (versions.length !== 0) {
                 for (const [version, buildID] of Object.entries(versions)) {
-                    bsVersions.push({ name: ShortenGameVersion(version), value: version });
+                    bsVersions.unshift({ name: ShortenGameVersion(version), value: version });
                 }
             }
         }
