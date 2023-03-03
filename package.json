@@ -4,11 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "dev": "nodemon index.js",
-    "importdb": "mongoimport --username=root -d analyzer -c analyzer --jsonArray --file=/docker-entrypoint-initdb.d/init-mongo-js",
-    "dbindex": "nodemon dbindex.js",
+    "dbindex": "node dbindex.js",
     "test": "jest",
-    "reanalyze": "nodemon reanalyze.js"
+    "reanalyze": "node reanalyze.js"
   },
   "keywords": [],
   "author": "darknight1050",

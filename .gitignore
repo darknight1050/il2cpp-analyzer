@@ -128,3 +128,6 @@ dist
 
 firebase.json
 mongo-volume/
+
+dbinit/*
+!dbinit/.gitkeep
