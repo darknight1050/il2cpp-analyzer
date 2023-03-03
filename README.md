@@ -1,4 +1,61 @@
 il2cpp-analyzer
+
+
+## Elastic search index overview
+
+We are using string_query as a base, to learn more about the syntax, see:
+https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html
+
+List of fields that are indexed in Elasticsearch search query:
+- stacktrace
+- mods.name
+- mods.version
+- mods.*
+- log
+
+Possible operators (have to be written in uppercase):
+- AND
+- OR
+- NOT
+
+### Query examples
+
+Simple query (will search for exact match in all fields):
+```bash
+"neko para"
+```
+
+Filter by mod name:
+```bash
+mods.name: "Mod name"
+```
+
+Filter by mod version (without the v):
+```bash
+mods.version: "1.0.0"
+```
+
+Filter by mod name and version:
+```
+mods.name: "Mod name" AND mods.version: "1.0.0"
+```
+
+Filter all the crashes with mods list and logs uploaded:
+```
+_exists_: mods AND _exists_: log
+```
+
+Filter all the crashes with mods list and a phrase in log
+```
+_exists_: mods AND log: "neko para"
+```
+
+Filter all the crashes with mods list and a phrase in log, but not in stacktrace
+```
+_exists_: mods AND log: "neko para" AND NOT stacktrace: "neko para"
+```
+
+
 ## Deployment 
 
 Useful commands for deploying the project to a server.
