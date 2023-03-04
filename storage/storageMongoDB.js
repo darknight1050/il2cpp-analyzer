@@ -1,22 +1,20 @@
-const { analyzeStacktrace } = require("../analyzer"),
+const { analyzeStacktrace, getBeatsaberVersionFromStacktrace } = require("../analyzer"),
     mongoose = require("mongoose"),
     Crash = require("../dbmodels/crash");
 
 mongoose.connect(process.env.MONGODB_URI)
-.then(()=>console.log("Mongoose connected."))
-.catch(e=>console.log(e));;
+    .then(() => console.log("Mongoose connected."))
+    .catch(e => console.log(e));;
 
 
 const defaultLimit = 200;
-
-let cachedCrashes = [];
 
 //https://stackoverflow.com/a/1349426
 const randomID = (length) => {
     let result = "";
     let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let charactersLength = characters.length;
-    for (let i = 0; i < length; i++ ) {
+    for (let i = 0; i < length; i++) {
         result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
     return result;
@@ -26,60 +24,124 @@ const getAvailableID = async (crash) => {
     let id;
     do {
         id = randomID(4);
-    } while(await Crash.findById(id).exec());
+    } while (await Crash.findById(id).exec());
     return id;
 }
 
 const getCrashes = async (filter) => {
-    const limit = filter.limit;
-    const userId = filter.userId;
-    const searchQuery = filter.search;
-    let defaultRequest = limit == defaultLimit && userId === undefined && searchQuery === undefined;
-    if(defaultRequest && cachedCrashes.length > 0) {
-        return cachedCrashes;
+    let limit = filter.limit || defaultLimit;
+    let userId = filter.userId;
+    let searchQuery = filter.search;
+    let dateLimit = filter.date | 0; // 0 - All, 1 - Last 24h, 7 - Last week, 30 - Last month, 365 - Last year
+    let version = filter.version || "all";
+
+    // Check all values for null
+    let isNull = {
+        limit: limit == defaultLimit,
+        userId: userId === undefined || userId === "",
+        searchQuery: searchQuery === undefined || searchQuery === "",
+        dateLimit: dateLimit == 0,
+        version: version === "all",
     }
-    let statement = Crash.find().sort({ uploadDate: -1 }).select("crashId userId uploadDate");
-    if(limit) {
-        try {
-            statement = statement.limit(limit);
-        } catch (error) {
+
+    // Fix types for mongoose
+    if (typeof limit !== "number") {
+        limit = parseInt(limit);
+    }
+    if (typeof dateLimit !== "number") {
+        dateLimit = parseInt(dateLimit);
+    }
+
+    // Fix invalid values for date
+    if (dateLimit > 365 || dateLimit < 0) {
+        dateLimit = 0;
+    }
+
+    // Build search params
+    let SearchParams = {
+        "size": limit,
+        "sort": [
+            { "uploadDate": { "order": "desc", "mode": "max" } }
+        ],
+        query: {
+            "bool": {
+                "must": [],
+                "filter": [],
+            },
         }
     }
-    if(userId)
-        statement = statement.find({ userId: userId });
-    if (searchQuery) {
-        statement = statement.find({ $text: { $search: searchQuery, $caseSensitive: false }});
+
+    if (!isNull.searchQuery) {
+        SearchParams.query.bool.must.push({
+            "query_string": {
+                "fields": [
+                    "stacktrace",
+                    "mods.*",
+                    "log",
+                ],
+                "query": searchQuery,
+            },
+        })
     }
-    const result = await statement.exec();
-    if(defaultRequest) {
-        cachedCrashes = result;
+
+    // Filter by user id
+    if (!isNull.userId) {
+        SearchParams.query.bool.filter.push({
+            "term": { "userId": userId.toLowerCase() },
+        })
+    };
+
+    // Filter by game version
+    if (!isNull.version) {
+        SearchParams.query.bool.filter.push({
+            "term": { "gameVersion": version.toLowerCase() },
+        })
+    };
+
+    // Filter by date limit
+    if (!isNull.dateLimit) {
+        SearchParams.query.bool.filter.push({
+            "range": { "uploadDate": { "gte": "now-" + dateLimit + "d" } }
+        })
     }
-    return result;
+
+    // ES Search
+    let searchResult = await Crash.esSearch(SearchParams, { hydrate: false });
+    let hits = searchResult.body.hits.hits;
+
+    // Remove not needed fields from result and map fields from ElasticSearch to MongoDB
+    hits = hits.map(hit => ({
+        userId: hit._source.userId,
+        crashId: hit._id,
+        uploadDate: hit._source.uploadDate,
+        gameVersion: hit._source.gameVersion,
+    }))
+
+    return hits;
 }
 
 const getCrash = async (crashId, includeOriginal = false) => {
     let statement = Crash.findById(crashId);
-    if(!includeOriginal)
+    if (!includeOriginal)
         statement = statement.select("-original");
     return statement.exec();
 }
 
 const storeCrash = async (crash) => {
     const crashId = await getAvailableID();
-    new Crash({ 
-        crashId: crashId, 
+    // Try to get game version from stacktrace
+    let gameVersion = getBeatsaberVersionFromStacktrace(crash.stacktrace);
+
+    new Crash({
+        crashId: crashId,
         userId: crash.userId,
-        original: crash.stacktrace, 
-        stacktrace: analyzeStacktrace(crash.stacktrace), 
-        log: crash.log, 
-        mods: crash.mods, 
-        uploadDate: Date.now() 
+        original: crash.stacktrace,
+        stacktrace: analyzeStacktrace(crash.stacktrace),
+        log: crash.log,
+        mods: crash.mods,
+        gameVersion: gameVersion,
+        uploadDate: Date.now()
     }).save();
-    const updateCache = async () => { 
-        cachedCrashes = [];
-        getCrashes({limit: 200});
-    };
-    updateCache();
     return crashId;
 }
 

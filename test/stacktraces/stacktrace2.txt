@@ -1,0 +1,60 @@
+*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+Version '2019.4.28f1 (1381962e9d08)', Build type 'Release', Scripting Backend 'il2cpp', CPU 'arm64-v8a'
+Build fingerprint: 'oculus/hollywood/hollywood:10/QQ3A.200805.001/49882890235800150:user/release-keys'
+Revision: '0'
+ABI: 'arm64'
+Timestamp: 2023-03-02 07:03:16-0500
+pid: 19260, tid: 19323, name: UnityMain  >>> com.beatgames.beatsaber <<<
+uid: 10161
+signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x8
+Cause: null pointer dereference
+    x0  0000000000000000  x1  000000742d5d9248  x2  0000007492d08140  x3  0000007492c025f8
+    x4  0000007492d08140  x5  0000000000000000  x6  6572615073614820  x7  656661736e55746e
+    x8  0000000000000010  x9  0000000000000002  x10 0000000000000030  x11 0000000000000000
+    x12 0000007492d00cc0  x13 0000000000000000  x14 000000740c745408  x15 0000000000001fff
+    x16 000000742d87a418  x17 0000007516816c24  x18 0000000000000081  x19 000000740466db38
+    x20 000000725d0ef000  x21 0000000000000003  x22 000000725d0ef018  x23 00000072e415a9c0
+    x24 000000742d06e092  x25 000000740466db38  x26 0000007229a06bd0  x27 000000725d0f4b40
+    x28 00000074060fbf00  x29 000000740953ee60
+    sp  000000740953ee10  lr  000000742d08ba70  pc  000000742d08ba98
+
+backtrace:
+      #00 pc 000000000004ba98  /data/data/com.beatgames.beatsaber/files/libcustom-types.so (Hook_LivenessState_TraverseGCDescriptor::hook_LivenessState_TraverseGCDescriptor(Il2CppObject*, void*)+996) (BuildId: b86ed6d1d47ebf4a2a19bd477781232a2d32a7dd)
+      #01 pc 0000000000050708  /data/data/com.beatgames.beatsaber/files/libcustom-types.so (Hooking::HookCatchWrapper<&(Hook_LivenessState_TraverseGCDescriptor::hook_LivenessState_TraverseGCDescriptor(Il2CppObject*, void*)), void (*)(Il2CppObject*, void*)>::wrapper(Il2CppObject*, void*)+16) (BuildId: b86ed6d1d47ebf4a2a19bd477781232a2d32a7dd)
+      #02 pc 00000000000503a0  /data/data/com.beatgames.beatsaber/files/libcustom-types.so (Hooking::HookCatchWrapper<&(Hook_LivenessState_TraverseGenericObject::hook_LivenessState_TraverseGenericObject(Il2CppObject*, void*)), void (*)(Il2CppObject*, void*)>::wrapper(Il2CppObject*, void*)+48) (BuildId: b86ed6d1d47ebf4a2a19bd477781232a2d32a7dd)
+      #03 pc 0000000001275238  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libil2cpp.so (il2cpp::vm::LivenessState::TraverseObjects(void)+60) (BuildId: faef8a5171deb191bbfdf0e23e03330679adf022)
+      #04 pc 0000000001275478  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libil2cpp.so (il2cpp::vm::LivenessState::TraverseArray(Il2CppArray*, il2cpp::vm::LivenessState*)+172) (BuildId: faef8a5171deb191bbfdf0e23e03330679adf022)
+      #05 pc 00000000000503a0  /data/data/com.beatgames.beatsaber/files/libcustom-types.so (Hooking::HookCatchWrapper<&(Hook_LivenessState_TraverseGenericObject::hook_LivenessState_TraverseGenericObject(Il2CppObject*, void*)), void (*)(Il2CppObject*, void*)>::wrapper(Il2CppObject*, void*)+48) (BuildId: b86ed6d1d47ebf4a2a19bd477781232a2d32a7dd)
+      #06 pc 0000000001275238  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libil2cpp.so (il2cpp::vm::LivenessState::TraverseObjects(void)+60) (BuildId: faef8a5171deb191bbfdf0e23e03330679adf022)
+      #07 pc 00000000012754dc  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libil2cpp.so (il2cpp::vm::LivenessState::TraverseArray(Il2CppArray*, il2cpp::vm::LivenessState*)+272) (BuildId: faef8a5171deb191bbfdf0e23e03330679adf022)
+      #08 pc 00000000000503a0  /data/data/com.beatgames.beatsaber/files/libcustom-types.so (Hooking::HookCatchWrapper<&(Hook_LivenessState_TraverseGenericObject::hook_LivenessState_TraverseGenericObject(Il2CppObject*, void*)), void (*)(Il2CppObject*, void*)>::wrapper(Il2CppObject*, void*)+48) (BuildId: b86ed6d1d47ebf4a2a19bd477781232a2d32a7dd)
+      #09 pc 0000000001275238  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libil2cpp.so (il2cpp::vm::LivenessState::TraverseObjects(void)+60) (BuildId: faef8a5171deb191bbfdf0e23e03330679adf022)
+      #10 pc 0000000001275478  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libil2cpp.so (il2cpp::vm::LivenessState::TraverseArray(Il2CppArray*, il2cpp::vm::LivenessState*)+172) (BuildId: faef8a5171deb191bbfdf0e23e03330679adf022)
+      #11 pc 00000000000503a0  /data/data/com.beatgames.beatsaber/files/libcustom-types.so (Hooking::HookCatchWrapper<&(Hook_LivenessState_TraverseGenericObject::hook_LivenessState_TraverseGenericObject(Il2CppObject*, void*)), void (*)(Il2CppObject*, void*)>::wrapper(Il2CppObject*, void*)+48) (BuildId: b86ed6d1d47ebf4a2a19bd477781232a2d32a7dd)
+      #12 pc 0000000001275238  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libil2cpp.so (il2cpp::vm::LivenessState::TraverseObjects(void)+60) (BuildId: faef8a5171deb191bbfdf0e23e03330679adf022)
+      #13 pc 0000000001275478  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libil2cpp.so (il2cpp::vm::LivenessState::TraverseArray(Il2CppArray*, il2cpp::vm::LivenessState*)+172) (BuildId: faef8a5171deb191bbfdf0e23e03330679adf022)
+      #14 pc 00000000000503a0  /data/data/com.beatgames.beatsaber/files/libcustom-types.so (Hooking::HookCatchWrapper<&(Hook_LivenessState_TraverseGenericObject::hook_LivenessState_TraverseGenericObject(Il2CppObject*, void*)), void (*)(Il2CppObject*, void*)>::wrapper(Il2CppObject*, void*)+48) (BuildId: b86ed6d1d47ebf4a2a19bd477781232a2d32a7dd)
+      #15 pc 0000000001275238  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libil2cpp.so (il2cpp::vm::LivenessState::TraverseObjects(void)+60) (BuildId: faef8a5171deb191bbfdf0e23e03330679adf022)
+      #16 pc 0000000001275478  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libil2cpp.so (il2cpp::vm::LivenessState::TraverseArray(Il2CppArray*, il2cpp::vm::LivenessState*)+172) (BuildId: faef8a5171deb191bbfdf0e23e03330679adf022)
+      #17 pc 00000000000503a0  /data/data/com.beatgames.beatsaber/files/libcustom-types.so (Hooking::HookCatchWrapper<&(Hook_LivenessState_TraverseGenericObject::hook_LivenessState_TraverseGenericObject(Il2CppObject*, void*)), void (*)(Il2CppObject*, void*)>::wrapper(Il2CppObject*, void*)+48) (BuildId: b86ed6d1d47ebf4a2a19bd477781232a2d32a7dd)
+      #18 pc 0000000001275238  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libil2cpp.so (il2cpp::vm::LivenessState::TraverseObjects(void)+60) (BuildId: faef8a5171deb191bbfdf0e23e03330679adf022)
+      #19 pc 0000000001275478  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libil2cpp.so (il2cpp::vm::LivenessState::TraverseArray(Il2CppArray*, il2cpp::vm::LivenessState*)+172) (BuildId: faef8a5171deb191bbfdf0e23e03330679adf022)
+      #20 pc 00000000000503a0  /data/data/com.beatgames.beatsaber/files/libcustom-types.so (Hooking::HookCatchWrapper<&(Hook_LivenessState_TraverseGenericObject::hook_LivenessState_TraverseGenericObject(Il2CppObject*, void*)), void (*)(Il2CppObject*, void*)>::wrapper(Il2CppObject*, void*)+48) (BuildId: b86ed6d1d47ebf4a2a19bd477781232a2d32a7dd)
+      #21 pc 0000000001275238  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libil2cpp.so (il2cpp::vm::LivenessState::TraverseObjects(void)+60) (BuildId: faef8a5171deb191bbfdf0e23e03330679adf022)
+      #22 pc 0000000001275478  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libil2cpp.so (il2cpp::vm::LivenessState::TraverseArray(Il2CppArray*, il2cpp::vm::LivenessState*)+172) (BuildId: faef8a5171deb191bbfdf0e23e03330679adf022)
+      #23 pc 00000000000503a0  /data/data/com.beatgames.beatsaber/files/libcustom-types.so (Hooking::HookCatchWrapper<&(Hook_LivenessState_TraverseGenericObject::hook_LivenessState_TraverseGenericObject(Il2CppObject*, void*)), void (*)(Il2CppObject*, void*)>::wrapper(Il2CppObject*, void*)+48) (BuildId: b86ed6d1d47ebf4a2a19bd477781232a2d32a7dd)
+      #24 pc 0000000001275238  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libil2cpp.so (il2cpp::vm::LivenessState::TraverseObjects(void)+60) (BuildId: faef8a5171deb191bbfdf0e23e03330679adf022)
+      #25 pc 0000000001275478  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libil2cpp.so (il2cpp::vm::LivenessState::TraverseArray(Il2CppArray*, il2cpp::vm::LivenessState*)+172) (BuildId: faef8a5171deb191bbfdf0e23e03330679adf022)
+      #26 pc 00000000000503a0  /data/data/com.beatgames.beatsaber/files/libcustom-types.so (Hooking::HookCatchWrapper<&(Hook_LivenessState_TraverseGenericObject::hook_LivenessState_TraverseGenericObject(Il2CppObject*, void*)), void (*)(Il2CppObject*, void*)>::wrapper(Il2CppObject*, void*)+48) (BuildId: b86ed6d1d47ebf4a2a19bd477781232a2d32a7dd)
+      #27 pc 0000000001275238  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libil2cpp.so (il2cpp::vm::LivenessState::TraverseObjects(void)+60) (BuildId: faef8a5171deb191bbfdf0e23e03330679adf022)
+      #28 pc 0000000001275bd0  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libil2cpp.so (il2cpp::vm::Liveness::FromStatics(void* param_1)+336) (BuildId: faef8a5171deb191bbfdf0e23e03330679adf022)
+      #29 pc 000000000050aa90  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libunity.so (GarbageCollectSharedAssets(bool param_1, bool param_2)+1472) (BuildId: 7f44ab8514291a0995548f41d0f2ac45c93a157d)
+      #30 pc 000000000051a264  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libunity.so (IntegrateMainThread(UnloadUnusedAssetsOperation* this)+16) (BuildId: 7f44ab8514291a0995548f41d0f2ac45c93a157d)
+      #31 pc 00000000005197c0  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libunity.so (UpdatePreloadingSingleStep(PreloadManager* this, UpdatePreloadingFlags param_1, int param_2)+256) (BuildId: 7f44ab8514291a0995548f41d0f2ac45c93a157d)
+      #32 pc 0000000000519e68  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libunity.so (UpdatePreloading(PreloadManager* this)+272) (BuildId: 7f44ab8514291a0995548f41d0f2ac45c93a157d)
+      #33 pc 000000000050be04  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libunity.so (ExecutePlayerLoop(NativePlayerLoopSystem* param_1)+80) (BuildId: 7f44ab8514291a0995548f41d0f2ac45c93a157d)
+      #34 pc 000000000050be38  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libunity.so (ExecutePlayerLoop(NativePlayerLoopSystem* param_1)+132) (BuildId: 7f44ab8514291a0995548f41d0f2ac45c93a157d)
+      #35 pc 000000000050c07c  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libunity.so (PlayerLoop(void)+344) (BuildId: 7f44ab8514291a0995548f41d0f2ac45c93a157d)
+      #36 pc 0000000000647eb4  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libunity.so (UnityPlayerLoop(void)+704) (BuildId: 7f44ab8514291a0995548f41d0f2ac45c93a157d)
+      #37 pc 000000000065bc24  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/lib/arm64/libunity.so (nativeRender(_JNIEnv* param_1, _jobject* param_2)+72) (BuildId: 7f44ab8514291a0995548f41d0f2ac45c93a157d)
+      #38 pc 000000000000bf5c  /data/app/com.beatgames.beatsaber-YqJorBqOVVUoqHmTMfKlpg==/oat/arm64/base.odex

@@ -1,4 +1,17 @@
+const { getBeatSaberVersions } = require("../analyzer");
 const { getCrashes } = require("../storage/storageMongoDB"); 
+
+/**
+ * Temporary array for game versions
+ * @type {Array<{name:string, value: string}>}
+ */
+let bsVersions = [];
+
+function ShortenGameVersion(version) {
+    const regex = /(\_\d*)/g;
+    // Remove the _ and the number
+    return version.replace(regex, "");
+}
 
 module.exports = (app) => {
     app.get("/", async (req, res) => {
@@ -6,7 +19,20 @@ module.exports = (app) => {
     });
 
     app.get("/crashes", async (req, res) => {
-        res.render("crashes");
+        // Get game version for select
+        if (bsVersions.length === 0) {
+            const versions = getBeatSaberVersions();
+            if (versions.length !== 0) {
+                for (const [version, buildID] of Object.entries(versions)) {
+                    bsVersions.unshift({ name: ShortenGameVersion(version), value: version });
+                }
+            }
+        }
+        
+        res.render("crashes", {
+            bsVersions,
+            queryParams: req.query,
+        });
     });
 
     app.get("/crashes/:crashId", async (req, res) => {
