@@ -1,4 +1,5 @@
-const fs = require("fs/promises"),
+const fssync = require("fs"),
+    fs = require("fs/promises"),
     fsPath = require("path"),
     gc = require("expose-gc/function");
 
@@ -47,7 +48,7 @@ const readVersionsDir = async (path) => {
     }
 }
 
-async function loadVersions() {
+const loadVersions = async() => {
     await readVersionsDir(versionsPath);
 }
 
@@ -82,11 +83,12 @@ const analyzeBuildIDs = (buildIDs) => {
     let analyzed = {};
     for (const [buildID, addresses] of Object.entries(buildIDs)) {
         try {
-            const json = JSON.parse(fs.readFileSync(versionsPath + "/" + availableBuildIDs[buildID.toLocaleLowerCase()]));
+            const json = JSON.parse(fssync.readFileSync(versionsPath + "/" + availableBuildIDs[buildID.toLocaleLowerCase()]));
             if (json.buildID.toLocaleLowerCase() === buildID.toLocaleLowerCase()) {
                 analyzed[buildID] = analyzeJson(json, addresses);
             }
         } catch (e) {
+            console.log(e);
         }
     }
     gc();
