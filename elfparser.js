@@ -79,6 +79,7 @@ const readArray = (buffer, struct, offset, entsize, num) => {
 
 const readELF = (buffer) => {
     let buildID = "";
+    let debug_lineSection;
     const elf = Elf64_Ehdr.readContext(buffer).data;
     let sectionHeaders = readArray(buffer, Elf64_Shdr, elf.e_shoff, elf.e_shentsize, elf.e_shnum);
     const shstrtab = sectionHeaders[elf.e_shstrndx]
@@ -92,10 +93,10 @@ const readELF = (buffer) => {
             }
         }
         if(section.sh_type == SHT_PROGBITS && name === ".debug_line") {
-            readDWARFLines(buffer, section.sh_offset, section.sh_size);
+            debug_lineSection = {offset: section.sh_offset, size: section.sh_size};
         }
     });
-    console.log(buildID);
+    return { buildID: buildID, section: debug_lineSection };
 }
 
 
@@ -151,29 +152,30 @@ const readLEB128 = (buffer, offset) => {
     return {value: leb, length: leb128.signed.encode(leb).length};
 }
 
-const readDWARFLines = (buffer, startOffset, size) => {
-    const search = BigInt(0x4ba98);
+const searchDWARFLines = (buffer, section, addresses) => {
+    const startOffset = section.offset;
+    let searchResults = {};
     const compilationUnits = [];
     let offset = startOffset;
     do {
         const cu = readDWARFLineCU(buffer, offset, startOffset);
         offset += cu.header.length + 4;
         compilationUnits.push(cu);
-    } while(offset < startOffset + size);
+    } while(offset < startOffset + section.size);
     for (let i = 0; i < compilationUnits.length; i++) {
         const cu = compilationUnits[i];
         for (let j = 1; j < cu.matrix.length; j++) {
             const register = cu.matrix[j];
-            if(register.address > search) {
-                const lastRegister = cu.matrix[j-1];
-                console.log(cu.matrix[j+2].address.toString(16))
-                const file = cu.file_names[lastRegister.file-1];
-                console.log(cu.include_directories[file.dir] + "/" + file.name + ":" + lastRegister.line + ":" + lastRegister.column);
-                return;
-            }
+            addresses.filter(address => !searchResults[address]).forEach(address => {
+                if(register.address > address) {
+                    const lastRegister = cu.matrix[j-1];
+                    const file = cu.file_names[lastRegister.file-1];
+                    searchResults[address] = { file: cu.include_directories[file.dir-1] + "/" + file.name, line: lastRegister.line, column: lastRegister.column };
+                }
+            });
         }
     }
-    return compilationUnits;
+    return searchResults;
 }
 
 const readDWARFLineCU = (buffer, startOffset, sectionOffset) => {
@@ -402,4 +404,4 @@ const readDWARFLineCU = (buffer, startOffset, sectionOffset) => {
 
 
 
-module.exports = { readELF };
+module.exports = { readELF, searchDWARFLines };
