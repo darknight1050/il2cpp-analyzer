@@ -1,0 +1,34 @@
+*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+Version '2019.4.28f1 (1381962e9d08)', Build type 'Release', Scripting Backend 'il2cpp', CPU 'arm64-v8a'
+Build fingerprint: 'oculus/hollywood/hollywood:10/QQ3A.200805.001/49882890235800150:user/release-keys'
+Revision: '0'
+ABI: 'arm64'
+Timestamp: 2023-03-01 20:07:22-0800
+pid: 13131, tid: 13205, name: UnityMain  >>> com.beatgames.beatsaber <<<
+uid: 10150
+signal 6 (SIGABRT), code -1 (SI_QUEUE), fault addr --------
+    x0  0000000000000000  x1  0000000000003395  x2  0000000000000006  x3  000000738620ef80
+    x4  fefeff71ff666d68  x5  fefeff71ff666d68  x6  fefeff71ff666d68  x7  7f7f7f7f7f7f7f7f
+    x8  00000000000000f0  x9  8ffe1fc62a60af0f  x10 0000000000000000  x11 fffffff0fffffbdf
+    x12 0000000000000018  x13 00000000640020fa  x14 0026172ff3e0554c  x15 000088612069cb39
+    x16 000000748a5234a0  x17 000000748a506de0  x18 000000738a11f000  x19 000000000000334b
+    x20 0000000000003395  x21 00000000ffffffff  x22 ffffff80ffffffc8  x23 000000738620f1d0
+    x24 000000738620f0b0  x25 000000738620f0f0  x26 0000000000000001  x27 000000738620f850
+    x28 000000738620fc90  x29 000000738620f000
+    sp  000000738620ef60  lr  000000748a4c3a48  pc  000000748a4c3a74
+
+backtrace:
+      #00 pc 0000000000080a74  /apex/com.android.runtime/lib64/bionic/libc.so (prop_area::find_property(prop_bt*, char const*, unsigned int, char const*, unsigned int, bool)+68) (BuildId: 76160b7be02961a2e357c92bde57eb19)
+      #01 pc 00000000000adff8  /data/app/com.beatgames.beatsaber-XhHfaumHbd7GfoAhjme4cg==/lib/arm64/libmodloader.so (std::get_unexpected()) (BuildId: 7d0d4abcf1f053cc9f72b25a9da4352eeaad119e)
+      #02 pc 00000000000ae124  /data/app/com.beatgames.beatsaber-XhHfaumHbd7GfoAhjme4cg==/lib/arm64/libmodloader.so (BuildId: 7d0d4abcf1f053cc9f72b25a9da4352eeaad119e)
+      #03 pc 00000000000ae098  /data/app/com.beatgames.beatsaber-XhHfaumHbd7GfoAhjme4cg==/lib/arm64/libmodloader.so (BuildId: 7d0d4abcf1f053cc9f72b25a9da4352eeaad119e)
+      #04 pc 00000000000ae040  /data/app/com.beatgames.beatsaber-XhHfaumHbd7GfoAhjme4cg==/lib/arm64/libmodloader.so (std::terminate()+52) (BuildId: 7d0d4abcf1f053cc9f72b25a9da4352eeaad119e)
+      #05 pc 000000000047f708  /data/data/com.beatgames.beatsaber/files/libbeatsaber-hook_3_14_0.so (safeAbort(char const*, char const*, int, unsigned short)+168) (BuildId: 10d0c8ce089fc9c4a93ab6d6229f4e24c6c9d665)
+      #06 pc 00000000002068c8  /data/data/com.beatgames.beatsaber/files/libpinkcore.so (void Hooking::__InstallHook<Hook_LevelListTableCell_SetDataFromLevelAsync, Logger, true>(Logger&, void*)) (BuildId: 3ab6473ffad80208ceed2c824a25d1e3368f29da)
+      #07 pc 0000000000234724  /data/data/com.beatgames.beatsaber/files/libpinkcore.so (load+184) (BuildId: 3ab6473ffad80208ceed2c824a25d1e3368f29da)
+      #08 pc 0000000000061250  /data/app/com.beatgames.beatsaber-XhHfaumHbd7GfoAhjme4cg==/lib/arm64/libmodloader.so (Modloader::load_mods()+420) (BuildId: 7d0d4abcf1f053cc9f72b25a9da4352eeaad119e)
+      #09 pc 00000000005de29c  /data/app/com.beatgames.beatsaber-XhHfaumHbd7GfoAhjme4cg==/lib/arm64/libunity.so (InitializeIl2CppFromMain(basic_string* param_1, basic_string* param_2, int param_3, char** param_4, bool param_5)+232) (BuildId: 7f44ab8514291a0995548f41d0f2ac45c93a157d)
+      #10 pc 00000000006471d0  /data/app/com.beatgames.beatsaber-XhHfaumHbd7GfoAhjme4cg==/lib/arm64/libunity.so (UnityInitApplication(void)+2644) (BuildId: 7f44ab8514291a0995548f41d0f2ac45c93a157d)
+      #11 pc 0000000000647c8c  /data/app/com.beatgames.beatsaber-XhHfaumHbd7GfoAhjme4cg==/lib/arm64/libunity.so (UnityPlayerLoop(void)+152) (BuildId: 7f44ab8514291a0995548f41d0f2ac45c93a157d)
+      #12 pc 000000000065bc24  /data/app/com.beatgames.beatsaber-XhHfaumHbd7GfoAhjme4cg==/lib/arm64/libunity.so (nativeRender(_JNIEnv* param_1, _jobject* param_2)+72) (BuildId: 7f44ab8514291a0995548f41d0f2ac45c93a157d)
+      #13 pc 000000000000bf5c  /data/app/com.beatgames.beatsaber-XhHfaumHbd7GfoAhjme4cg==/oat/arm64/base.odex

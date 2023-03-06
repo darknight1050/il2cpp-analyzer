@@ -1,6 +1,6 @@
 const _ = require("lodash"),
     { getBuildIDs, analyzeBuildIDs, analyzeStacktrace } = require("../analyzer"),
-    { storeCrash, getCrashes, getCrash } = require("../storage"),
+    { storeCrash, getCrashes, getCrash } = require("../storage/storageMongoDB"),
     axios = require("axios"),
     express = require("express");
 
@@ -73,18 +73,23 @@ module.exports = (app) => {
     });
 
     app.get("/api/crashes", async (req, res) => {
-        res.status(200).json(await getCrashes(req.query.limit || 0));
+        try {
+            let result = await getCrashes(req.query)
+            res.status(200).json(result);
+        } catch (err) {
+            res.status(400).json({message: err.message});
+        }
+        
     });
 
     app.get("/api/crashes/:crashId", async (req, res) => {
         if(req.params.crashId === "latest") {
-            res.redirect("./" + (await getCrashes())[0].crashId);
+            res.redirect("./" + (await getCrashes({ limit: 1 }))[0].crashId);
             return;
         }
-
-        const crash = await getCrash(req.params.crashId);
+        const crash = await getCrash(req.params.crashId, req.query.original?.toLowerCase() === "true" ? true : false);
         if(crash) {
-            res.status(200).setHeader("Content-Type", "text/plain").send(crash);
+            res.status(200).setHeader("Content-Type", "application/json").send(crash);
         } else {
             res.status(404).end();
         }

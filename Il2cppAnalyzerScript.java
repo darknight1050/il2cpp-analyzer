@@ -54,7 +54,7 @@ public class Il2cppAnalyzerScript extends GhidraScript {
 			
 			jsonWriter.beginObject();
 			jsonWriter.name("name").value(demangle(function.getName()));
-			jsonWriter.name("sig").value(demangle(function.getName(), function.getSignature().getPrototypeString().replace(" *", "*")));
+			jsonWriter.name("sig").value(removeNullReturnType(demangle(function.getName(), function.getSignature().getPrototypeString().replace(" *", "*"))));
 			jsonWriter.name("ranges");
 			jsonWriter.beginArray();
 			AddressRangeIterator iterRange = function.getBody().getAddressRanges();
@@ -112,15 +112,21 @@ public class Il2cppAnalyzerScript extends GhidraScript {
 				if(index > 0)
 					demangled = demangled.substring(0, index);
 			}
-				
 			println(mangled + " -> " + demangled);
 			return demangled;
 		}
+
 		return mangled;
 	}
 	
 	public String demangle(String name) throws IOException {
 		return demangle(name, name);
+	}
+	
+	public static String removeNullReturnType(String name) {
+		if(name.startsWith("undefined ") || name.startsWith("void "))
+			return name.substring(name.indexOf(" ") + 1);
+		return name;
 	}
 	
 	public boolean isMangled(String mangled) {
