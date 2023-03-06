@@ -131,3 +131,4 @@ docker/mongo-volume/
 docker/elasticsearch-data
 docker/dbinit/*
 !docker/dbinit/.gitkeep
+versions/qpackages

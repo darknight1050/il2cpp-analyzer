@@ -68,7 +68,6 @@ const loadVersions = async () => {
     await readVersionsDir(versionsPath);
 }
 
-
 const getBuildIDs = () => {
     return Object.values(availableBuildIDs).map(buildID => buildID.name.substring(0, buildID.name.length - fsPath.extname(buildID.name).length));
 }
@@ -130,7 +129,7 @@ const analyzeBuildIDs = (buildIDs) => {
 }
 
 const analyzeStacktrace = (stacktrace) => {
-    const regexPc = /#[0-9]{2,3} pc (?<address>.{16})  \/.+?(?<insertSo>\().+? (?<insertJson>\(BuildId: )(?<buildID>.{40})\)/gd;
+    const regexPc = /#[0-9]{2,3} pc (?<address>.{16})  \/.+?(?<insertSo>\().*?(?<insertJson>BuildId: )(?<buildID>.{40})\)/gd;
     let buildIDs = [];
     let match;
     while (match = regexPc.exec(stacktrace)) {
@@ -151,7 +150,7 @@ const analyzeStacktrace = (stacktrace) => {
                 {
                     const startAddr = result.ranges.sort((a, b) => a[0] - b[0])[0][0];
                     const textInsert = "(" + result.sig + "+" + (address - startAddr) + ") ";
-                    const insertPos = match.indices.groups.insertJson[0];
+                    const insertPos = match.indices.groups.insertJson[0]-1;
                     stacktrace = stacktrace.insert(insertPos, textInsert);
                     break;
                 }
@@ -161,7 +160,6 @@ const analyzeStacktrace = (stacktrace) => {
                     const lineStart = stacktrace.lastIndexOf("\n", insertPos) + 1;
                     const lineEnd = stacktrace.indexOf("\n", insertPos) + 1;
                     const textInsert = " ".repeat(insertPos - lineStart) + result.file + ":" + result.line + ":" + result.column + "\n";
-                    console.log(result)
                     stacktrace = stacktrace.insert(lineEnd, textInsert);
                     break;
                 }

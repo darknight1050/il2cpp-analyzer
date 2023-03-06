@@ -162,13 +162,12 @@ const searchDWARFLines = (buffer, section, addresses) => {
         offset += cu.header.length + 4;
         compilationUnits.push(cu);
     } while(offset < startOffset + section.size);
-    for (let i = 0; i < compilationUnits.length; i++) {
-        const cu = compilationUnits[i];
-        for (let j = 1; j < cu.matrix.length; j++) {
-            const register = cu.matrix[j];
+    for (let cu of compilationUnits) {
+        for (let i = 1; i < cu.matrix.length; i++) {
+            const register = cu.matrix[i];
             addresses.filter(address => !searchResults[address]).forEach(address => {
                 if(register.address > address) {
-                    const lastRegister = cu.matrix[j-1];
+                    const lastRegister = cu.matrix[i-1];
                     const file = cu.file_names[lastRegister.file-1];
                     searchResults[address] = { file: cu.include_directories[file.dir-1] + "/" + file.name, line: lastRegister.line, column: lastRegister.column };
                 }
