@@ -17,43 +17,37 @@ services:
     cap_add:
       - IPC_LOCK
     volumes:
-      - elasticsearch-data:/usr/share/elasticsearch/data
+      - ./docker/elasticsearch-data:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
       - 9300:9300
-  kibana:
-    image: docker.elastic.co/kibana/kibana:7.4.0
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    ports:
-      - 5601:5601
-    depends_on:
-      - elasticsearch
 
-  db: 
+  mongo: 
     image: mongo:latest
+    command: mongod --port 27027
     environment:
       - MONGO_INITDB_DATABASE=analyzer
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=root
     volumes:
-      - ./dbinit/:/docker-entrypoint-initdb.d/:ro
-      - ./mongo-volume:/data/db
+      - ./docker/dbinit/:/docker-entrypoint-initdb.d/:ro
+      - ./docker/mongo-volume:/data/db
     ports:
-      - '27017-27019:27017-27019'
+      - 27027:27027
   mongo-express:
     image: mongo-express:latest
     restart: unless-stopped
     depends_on:
-      - db
+      - mongo
     ports:
       - 8081:8081
     environment:
       - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
       - ME_CONFIG_MONGODB_ADMINUSERNAME=root
       - ME_CONFIG_MONGODB_ADMINPASSWORD=root
-      - ME_CONFIG_MONGODB_SERVER=db
-      - ME_CONFIG_REQUEST_SIZE=5999999999999kb        
+      - ME_CONFIG_REQUEST_SIZE=5999999999999kb    
+      - ME_CONFIG_MONGODB_SERVER=mongo    
+      - ME_CONFIG_MONGODB_PORT=27027
 
 volumes:
   elasticsearch-data:

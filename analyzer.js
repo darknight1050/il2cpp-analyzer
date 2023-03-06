@@ -15,6 +15,7 @@ const readVersion = async (path) => {
         const extension = fsPath.extname(name).substring(1);
         switch (extension) {
             case "json":
+            {
                 const json = JSON.parse(buffer);
                 if (json.buildID !== undefined) {
                     const buildID = json.buildID.toLocaleLowerCase();
@@ -26,12 +27,17 @@ const readVersion = async (path) => {
                     }
                 }
                 break;
-                case "so":
-                    const elf = readELF(buffer);
+            }
+            case "so":
+            {
+                const elf = readELF(buffer);
                 break;
-                default:
-                    console.log("File has unknown extension: " + name);
+            }
+            default:
+            {
+                console.log("File has unknown extension: " + name);
                 break;
+            }
         }
 
     } catch (e) {
