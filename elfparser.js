@@ -1,78 +1,7 @@
 const Struct = require("structron");
 
 https://github.com/facebookincubator/oculus-linux-kernel/blob/oculus-quest-kernel-master/include/uapi/linux/elf.h
-/*
-typedef __s64	Elf64_Sxword;
-typedef __u64	Elf64_Addr;
-typedef __u64	Elf64_Xword;
-typedef __u64	Elf64_Off;
-typedef __s32	Elf64_Sword;
-typedef __u32	Elf64_Word;
-typedef __u16	Elf64_Half;
-typedef __s16	Elf64_SHalf;
 
-sh_type
-#define SHT_NULL	0
-#define SHT_PROGBITS	1
-#define SHT_SYMTAB	2
-#define SHT_STRTAB	3
-#define SHT_RELA	4
-#define SHT_HASH	5
-#define SHT_DYNAMIC	6
-#define SHT_NOTE	7
-#define SHT_NOBITS	8
-#define SHT_REL		9
-#define SHT_SHLIB	10
-#define SHT_DYNSYM	11
-#define SHT_NUM		12
-#define SHT_LOPROC	0x70000000
-#define SHT_HIPROC	0x7fffffff
-#define SHT_LOUSER	0x80000000
-#define SHT_HIUSER	0xffffffff
-
-sh_flags
-#define SHF_WRITE	0x1
-#define SHF_ALLOC	0x2
-#define SHF_EXECINSTR	0x4
-#define SHF_MASKPROC	0xf0000000
-
-typedef struct elf64_hdr {
-  unsigned char	e_ident[EI_NIDENT];	ELF "magic number"
-  Elf64_Half e_type;
-  Elf64_Half e_machine;
-  Elf64_Word e_version;
-  Elf64_Addr e_entry;		Entry point virtual address
-  Elf64_Off e_phoff;		Program header table file offset
-  Elf64_Off e_shoff;		Section header table file offset
-  Elf64_Word e_flags;
-  Elf64_Half e_ehsize;
-  Elf64_Half e_phentsize;
-  Elf64_Half e_phnum;
-  Elf64_Half e_shentsize;
-  Elf64_Half e_shnum;
-  Elf64_Half e_shstrndx;
-} Elf64_Ehdr;
-
-typedef struct elf64_shdr {
-  Elf64_Word sh_name;		Section name, index in string tbl
-  Elf64_Word sh_type;		Type of section
-  Elf64_Xword sh_flags;		Miscellaneous section attributes
-  Elf64_Addr sh_addr;		Section virtual addr at execution
-  Elf64_Off sh_offset;		Section file offset
-  Elf64_Xword sh_size;		Size of section in bytes
-  Elf64_Word sh_link;		Index of another section
-  Elf64_Word sh_info;		Additional section information
-  Elf64_Xword sh_addralign;	Section alignment
-  Elf64_Xword sh_entsize;	Entry size if section holds table
-} Elf64_Shdr;
-
-Note header in a PT_NOTE section
-typedef struct elf64_note {
-    Elf64_Word n_namesz;	Name size
-    Elf64_Word n_descsz;	Content size
-    Elf64_Word n_type;	    Content type
-} Elf64_Nhdr;
-*/
 Struct.TYPES.ULONG = {
     read(buffer, offset) {
         return Number(buffer.readBigUInt64LE(offset));
@@ -81,6 +10,16 @@ Struct.TYPES.ULONG = {
         context.buffer.writeBigUInt64LE(BigInt(value), offset);
     },
     SIZE: 8
+};
+
+Struct.TYPES.SBYTE = {
+    read(buffer, offset) {
+      return buffer.readInt8(offset)
+    },
+    write(value, context, offset) {
+      context.buffer.writeInt8(value, offset);
+    },
+    SIZE: 1
 };
 
 const SHT_PROGBITS = 1;
@@ -152,8 +91,315 @@ const readELF = (buffer) => {
                 buildID = buffer.toString("hex", buildIDOffset, buildIDOffset + note.n_descsz);
             }
         }
+        if(section.sh_type == SHT_PROGBITS && name === ".debug_line") {
+            readDWARFLines(buffer, section.sh_offset, section.sh_size);
+        }
     });
     console.log(buildID);
 }
+
+
+const leb128 = require("leb128");
+
+const DW_LNS_copy = 1;
+const DW_LNS_advance_pc = 2;
+const DW_LNS_advance_line = 3;
+const DW_LNS_set_file = 4;
+const DW_LNS_set_column = 5;
+const DW_LNS_negate_stmt = 6;
+const DW_LNS_set_basic_block = 7;
+const DW_LNS_const_add_pc = 8;
+const DW_LNS_fixed_advance_pc = 9;
+const DW_LNS_set_prologue_end = 10;
+const DW_LNS_set_epilogue_begin = 11;
+const DW_LNS_set_isa = 12;
+
+const DW_LNE_end_sequence = 1;
+const DW_LNE_set_address = 2;
+const DW_LNE_define_file = 3;
+const DW_LNE_set_discriminator = 4;
+
+const DWARFDebugLineHeader = new Struct()
+    .addMember(Struct.TYPES.UINT, "length")
+    .addMember(Struct.TYPES.USHORT, "version")
+    .addMember(Struct.TYPES.UINT, "header_length")
+    .addMember(Struct.TYPES.BYTE, "minimum_instruction_length")
+    .addMember(Struct.TYPES.BYTE, "maximum_operations_per_instruction")
+    .addMember(Struct.TYPES.BYTE, "default_is_stmt")
+    .addMember(Struct.TYPES.SBYTE, "line_base")
+    .addMember(Struct.TYPES.BYTE, "line_range")
+    .addMember(Struct.TYPES.BYTE, "opcode_base");
+
+const readString = (buffer, offset) => {
+    let len = 0;
+    while (buffer.readUInt8(offset + len) != 0) {
+        len++;
+        if (len >= buffer.length) {
+            throw new Error("Null terminated string went outside buffer!");
+        }
+    }
+    return {value: buffer.toString("ASCII", offset, offset + len), length: len + 1};
+}
+
+const readULEB128 = (buffer, offset) => {
+    let leb = Number(leb128.unsigned.decode(buffer.slice(offset)));
+    return {value: leb, length: leb128.unsigned.encode(leb).length};
+}
+
+const readLEB128 = (buffer, offset) => {
+    let leb = Number(leb128.signed.decode(buffer.slice(offset)));
+    return {value: leb, length: leb128.signed.encode(leb).length};
+}
+
+const readDWARFLines = (buffer, startOffset, size) => {
+    const search = BigInt(0x4ba98);
+    const compilationUnits = [];
+    let offset = startOffset;
+    do {
+        const cu = readDWARFLineCU(buffer, offset, startOffset);
+        offset += cu.header.length + 4;
+        compilationUnits.push(cu);
+    } while(offset < startOffset + size);
+    for (let i = 0; i < compilationUnits.length; i++) {
+        const cu = compilationUnits[i];
+        for (let j = 1; j < cu.matrix.length; j++) {
+            const register = cu.matrix[j];
+            if(register.address > search) {
+                const lastRegister = cu.matrix[j-1];
+                console.log(cu.matrix[j+2].address.toString(16))
+                const file = cu.file_names[lastRegister.file-1];
+                console.log(cu.include_directories[file.dir] + "/" + file.name + ":" + lastRegister.line + ":" + lastRegister.column);
+                return;
+            }
+        }
+    }
+    return compilationUnits;
+}
+
+const readDWARFLineCU = (buffer, startOffset, sectionOffset) => {
+    let offset = startOffset;
+    const header = DWARFDebugLineHeader.readContext(buffer, offset).data;
+    offset += DWARFDebugLineHeader.SIZE;
+    const standard_opcode_lengths = [header.opcode_base];
+    for (let i = 0; i < header.opcode_base - 1; i++)
+        standard_opcode_lengths[i] = buffer.readInt8(offset + i);
+    offset += header.opcode_base - 1;
+
+    const include_directories = [];
+    while (buffer.readUInt8(offset) != 0) {
+        const str = readString(buffer, offset);
+        include_directories.push(str.value);
+        offset += str.length;
+    }
+    offset += 1;
+    
+    //console.log(header);
+    //console.log(standard_opcode_lengths);
+    //console.log(include_directories);
+    
+    const file_names = [];
+    while (buffer.readUInt8(offset) != 0) {
+        const name = readString(buffer, offset);
+        offset += name.length;
+        const dir = readULEB128(buffer, offset);
+        offset += dir.length;
+        const time = readULEB128(buffer, offset);
+        offset += time.length;
+        const size = readULEB128(buffer, offset);
+        offset += size.length;
+        file_names.push({name: name.value, dir: dir.value, time: time.value, size: size.value });
+    }
+    //console.log(file_names);
+    offset = startOffset + 4 + 2 + 4 + header.header_length;
+
+    const startRegisters = {
+        address: BigInt(0),
+        op_index: 0,
+        file: 1,
+        line: 1,
+        column: 0,
+        is_stmt: header.default_is_stmt,
+        basic_block: false,
+        end_sequence: false,
+        prologue_end: false,
+        epilogue_begin: false,
+        isa: 0,
+        discriminator: 0,
+    }
+    const matrix = [];
+    let registers = Object.assign({}, startRegisters);
+    while(offset - startOffset < header.length + 4) {
+        const opcodeAddress = offset - sectionOffset;
+        const opcode = buffer.readUInt8(offset);
+        offset += 1;
+        if(opcode == 0) {
+            const operand = readULEB128(buffer, offset);
+            offset += operand.length;
+            const instruction_length = operand.value;
+            const instruction_end = offset + instruction_length;
+            const extended_opcode = buffer.readUInt8(offset);
+            offset += 1;
+            switch(extended_opcode) {
+                case DW_LNE_end_sequence:
+                {
+                    registers.end_sequence = true;
+                    matrix.push(Object.assign({}, registers));
+                    registers = Object.assign({}, startRegisters);
+                    //console.log("[" + (opcodeAddress).toString(16) + "] Extended opcode "  + extended_opcode + ": End of Sequence");
+                    //console.log("");
+                    break;
+                }
+                case DW_LNE_set_address:
+                {
+                    registers.address = buffer.readBigUInt64LE(offset);
+                    registers.op_index = 0;
+                    //console.log("[" + (opcodeAddress).toString(16) + "] Extended opcode "  + extended_opcode + ": set Address to "  + registers.address.toString(16));
+                    break;
+                }
+                case DW_LNE_define_file:
+                {
+                    break;
+                }
+                case DW_LNE_set_discriminator:
+                {
+                    const operand = readULEB128(buffer, offset);
+                    registers.discriminator = operand.value;
+                    break;
+                }
+            }
+            offset = instruction_end;
+        } else if(opcode < header.opcode_base) {
+            switch(opcode) {
+                case DW_LNS_copy:
+                {
+                    matrix.push(Object.assign({}, registers));
+                    registers.discriminator = 0;
+                    registers.basic_block = false;
+                    registers.prologue_end = false;
+                    registers.epilogue_begin = false;
+                    //console.log("[" + (opcodeAddress).toString(16) + "] Copy");
+                    break;
+                }
+                case DW_LNS_advance_pc:
+                {
+                    const operand = readULEB128(buffer, offset);
+                    offset += operand.length;
+                    const operation_advance = operand.value;
+                    const advanceAddress = BigInt(Math.floor(header.minimum_instruction_length * ((registers.op_index + operation_advance)/header.maximum_operations_per_instruction)));
+                    registers.address += advanceAddress;
+                    if(header.maximum_operations_per_instruction != 1)
+                        registers.op_index = (registers.op_index + operation_advance) % header.maximum_operations_per_instruction;
+                    //console.log("[" + (opcodeAddress).toString(16) + "] Advance PC by " + advanceAddress + " to " + registers.address.toString(16));
+                    break;
+                }
+                case DW_LNS_advance_line:
+                {
+                    const operand = readLEB128(buffer, offset);
+                    offset += operand.length;
+                    registers.line += operand.value;
+                    //console.log("[" + (opcodeAddress).toString(16) + "] Advance Line by " + operand.value + " to " + registers.line);
+                    break;
+                }
+                case DW_LNS_set_file:
+                {
+                    const operand = readULEB128(buffer, offset);
+                    offset += operand.length;
+                    registers.file = operand.value;
+                    //console.log("[" + (opcodeAddress).toString(16) + "] Set File Name to entry " +  registers.file + " in the File Name Table");
+                    break;
+                }
+                case DW_LNS_set_column:
+                {
+                    const operand = readULEB128(buffer, offset);
+                    offset += operand.length;
+                    registers.column = operand.value;
+                    //console.log("[" + (opcodeAddress).toString(16) + "] Set column to " + registers.column);
+                    break;
+                }
+                case DW_LNS_negate_stmt:
+                {
+                    registers.is_stmt = !registers.is_stmt;
+                    //console.log("[" + (opcodeAddress).toString(16) + "] Set is_stmt to " + Number(registers.is_stmt));
+                    break;
+                }
+                case DW_LNS_set_basic_block:
+                {
+                    registers.basic_block = true;
+                    break;
+                }
+                case DW_LNS_const_add_pc:
+                {
+                    const adjusted_opcode = 255 - header.opcode_base;
+                    const operation_advance = adjusted_opcode / header.line_range;
+                    const advanceAddress = BigInt(Math.floor(header.minimum_instruction_length * ((registers.op_index + operation_advance)/header.maximum_operations_per_instruction)));
+                    registers.address += advanceAddress;
+                    if(header.maximum_operations_per_instruction != 1)
+                        registers.op_index = (registers.op_index + operation_advance) % header.maximum_operations_per_instruction;
+                    //console.log("[" + (opcodeAddress).toString(16) + "] Advance PC by constant " + advanceAddress + " to " + registers.address.toString(16));
+                    break;
+                }
+                case DW_LNS_fixed_advance_pc:
+                {
+                    const operand = buffer.readUInt16LE(offset);
+                    offset += 2;
+                    registers.address += BigInt(operand);
+                    registers.op_index = 0;
+                    //console.log("[" + (opcodeAddress).toString(16) + "] Advance PC by fixed " + operand + " to " + registers.address.toString(16));
+                    break;
+                }
+                case DW_LNS_set_prologue_end:
+                {
+                    registers.prologue_end = true;
+                    //console.log("[" + (opcodeAddress).toString(16) + "] Set prologue_end to true");
+                    break;
+                }
+                case DW_LNS_set_epilogue_begin:
+                {
+                    registers.epilogue_begin = true;
+                    //console.log("[" + (opcodeAddress).toString(16) + "] Set epilogue_begin to true");
+                    break;
+                }
+                case DW_LNS_set_isa:
+                {
+                    const operand = readULEB128(buffer, offset);
+                    offset += operand.length;
+                    registers.isa = operand.value;
+                    break;
+                }
+                default:
+                {   
+                    for(let i = 0; i < standard_opcode_lengths[opcode - 1]; i++) 
+                        offset += readULEB128(buffer, offset).length;
+                    break;
+                }
+            }
+        } else {
+            const adjusted_opcode = opcode - header.opcode_base;
+            const operation_advance = adjusted_opcode / header.line_range;
+            const advanceAddress = BigInt(Math.floor(header.minimum_instruction_length * ((registers.op_index + operation_advance)/header.maximum_operations_per_instruction)));
+            registers.address += advanceAddress;
+            if(header.maximum_operations_per_instruction != 1)
+                registers.op_index = (registers.op_index + operation_advance) % header.maximum_operations_per_instruction;
+            const advanceLine = header.line_base + (adjusted_opcode % header.line_range);
+            registers.line += advanceLine;
+
+            matrix.push(Object.assign({}, registers));
+
+            registers.basic_block = false;
+            registers.prologue_end = false;
+            registers.epilogue_begin = false;
+            registers.discriminator = 0;
+            //console.log("[" + (opcodeAddress).toString(16) + "] Special opcode " + adjusted_opcode + ": advance Address by " + advanceAddress + " to " + registers.address.toString(16) + " and Line by "+ advanceLine  + " to " + registers.line);
+        }
+    }
+    return {
+        header: header,
+        include_directories: include_directories,
+        file_names: file_names,
+        matrix: matrix
+    }
+}
+
+
 
 module.exports = { readELF };
