@@ -14,7 +14,10 @@ const availableBuildIDs = {};
 const beatSaberVersions = {};
 
 const readVersion = async (path) => {
-    let buffer = await fs.readFile(path);
+    const buffer = await fs.readFile(path);
+    if(buffer.length == 0) {
+        return;
+    }
     const name = path.substring(versionsPath.length + 1);
     try {
         const extension = fsPath.extname(name).substring(1);
