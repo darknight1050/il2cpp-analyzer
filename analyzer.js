@@ -35,8 +35,12 @@ const readVersion = async (path) => {
             case "so":
             {
                 const elf = readELF(buffer);
-                console.log("Loaded " + name + ": " + elf.buildID);
-                availableBuildIDs[elf.buildID] = {name: name, section: elf.section, type: BuildIDTypes.SO};
+                if(elf.section) {
+                    console.log("Loaded " + name + ": " + elf.buildID);
+                    availableBuildIDs[elf.buildID] = {name: name, section: elf.section, type: BuildIDTypes.SO};
+                } else {
+                    console.log("Couldn't find .debug section in " + name);
+                }
                 break;
             }
             default:
