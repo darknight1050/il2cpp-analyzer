@@ -1,33 +1,56 @@
 const fssync = require("fs"),
     fs = require("fs/promises"),
     fsPath = require("path"),
-    gc = require("expose-gc/function");
+    gc = require("expose-gc/function"),
+    { readELF, searchDWARFLines } = require("./elfparser");
+
+const BuildIDTypes = {
+    JSON: 1,
+    SO: 2
+}
 
 const versionsPath = "./versions";
 const availableBuildIDs = {};
 const beatSaberVersions = {};
 
 const readVersion = async (path) => {
-    let buffer = await fs.readFile(path);
+    const buffer = await fs.readFile(path);
+    if(buffer.length == 0) {
+        return;
+    }
     const name = path.substring(versionsPath.length + 1);
     try {
         const extension = fsPath.extname(name).substring(1);
         switch (extension) {
             case "json":
+            {
                 const json = JSON.parse(buffer);
                 if (json.buildID !== undefined) {
                     const buildID = json.buildID.toLocaleLowerCase();
                     console.log("Loaded " + name + ": " + buildID);
-                    availableBuildIDs[buildID] = name;
-                    
+                    availableBuildIDs[buildID] = {name: name, type: BuildIDTypes.JSON};
                     if (path.includes("com.beatgames.beatsaber")) {
                         beatSaberVersions[fsPath.basename(path, fsPath.extname(path))] = buildID;
                     }
                 }
                 break;
+            }
+            case "so":
+            {
+                const elf = readELF(buffer);
+                if(elf.section) {
+                    console.log("Loaded " + name + ": " + elf.buildID);
+                    availableBuildIDs[elf.buildID] = {name: name, section: elf.section, type: BuildIDTypes.SO};
+                } else {
+                    console.log("Couldn't find .debug section in " + name);
+                }
+                break;
+            }
             default:
+            {
                 console.log("File has unknown extension: " + name);
                 break;
+            }
         }
 
     } catch (e) {
@@ -48,13 +71,12 @@ const readVersionsDir = async (path) => {
     }
 }
 
-const loadVersions = async() => {
+const loadVersions = async () => {
     await readVersionsDir(versionsPath);
 }
 
-
 const getBuildIDs = () => {
-    return Object.values(availableBuildIDs).map(name => name.substring(0, name.length - fsPath.extname(name).length));
+    return Object.values(availableBuildIDs).map(buildID => buildID.name.substring(0, buildID.name.length - fsPath.extname(buildID.name).length));
 }
 
 const analyzeJson = (json, addresses) => {
@@ -79,13 +101,31 @@ const analyzeJson = (json, addresses) => {
     return analyzed;
 }
 
+const analyzeSo = (buffer, section, addresses) => {
+    return searchDWARFLines(buffer, section, addresses);
+}
+
 const analyzeBuildIDs = (buildIDs) => {
     let analyzed = {};
     for (const [buildID, addresses] of Object.entries(buildIDs)) {
         try {
-            const json = JSON.parse(fssync.readFileSync(versionsPath + "/" + availableBuildIDs[buildID.toLocaleLowerCase()]));
-            if (json.buildID.toLocaleLowerCase() === buildID.toLocaleLowerCase()) {
-                analyzed[buildID] = analyzeJson(json, addresses);
+            const buildIDData = availableBuildIDs[buildID.toLocaleLowerCase()];
+            if(buildIDData) {
+                const buffer = fssync.readFileSync(versionsPath + "/" + buildIDData.name);
+                switch(buildIDData.type) {
+                    case BuildIDTypes.JSON:
+                    {
+                        const json = JSON.parse(buffer);
+                        analyzed[buildID] = analyzeJson(json, addresses);
+                        break;
+                    }
+                    case BuildIDTypes.SO:
+                    {
+                        analyzed[buildID] = analyzeSo(buffer, buildIDData.section,  addresses);
+                        break;
+                    }
+                }
+                analyzed[buildID].type = buildIDData.type;
             }
         } catch (e) {
             console.log(e);
@@ -96,7 +136,7 @@ const analyzeBuildIDs = (buildIDs) => {
 }
 
 const analyzeStacktrace = (stacktrace) => {
-    const regexPc = /#[0-9]{2,3} pc (?<address>.{16})  \/.+? (?<insert>\(BuildId: )(?<buildID>.{40})\)/gd;
+    const regexPc = /#[0-9]{2,3} pc (?<address>.{16})  \/.+?(?<insertSo>\().*?(?<insertJson>BuildId: )(?<buildID>.{40})\)/gd;
     let buildIDs = [];
     let match;
     while (match = regexPc.exec(stacktrace)) {
@@ -112,10 +152,25 @@ const analyzeStacktrace = (stacktrace) => {
         const address = "0x" + match.groups.address;
         if (analyzed[buildID] && analyzed[buildID][address]) {
             const result = analyzed[buildID][address];
-            const startAddr = result.ranges.sort((a, b) => a[0] - b[0])[0][0];
-            const textInsert = "(" + result.sig + "+" + (address - startAddr) + ") ";
-            const insertPos = match.indices.groups.insert[0];
-            stacktrace = stacktrace.insert(insertPos, textInsert);
+            switch(analyzed[buildID].type) {
+                case BuildIDTypes.JSON:
+                {
+                    const startAddr = result.ranges.sort((a, b) => a[0] - b[0])[0][0];
+                    const textInsert = "(" + result.sig + "+" + (address - startAddr) + ") ";
+                    const insertPos = match.indices.groups.insertJson[0]-1;
+                    stacktrace = stacktrace.insert(insertPos, textInsert);
+                    break;
+                }
+                case BuildIDTypes.SO:
+                {
+                    const insertPos = match.indices.groups.insertSo[0];
+                    const lineStart = stacktrace.lastIndexOf("\n", insertPos) + 1;
+                    const lineEnd = stacktrace.indexOf("\n", insertPos) + 1;
+                    const textInsert = " ".repeat(insertPos - lineStart) + result.file + ":" + result.line + ":" + result.column + "\n";
+                    stacktrace = stacktrace.insert(lineEnd, textInsert);
+                    break;
+                }
+            }
         }
     }
     return stacktrace;

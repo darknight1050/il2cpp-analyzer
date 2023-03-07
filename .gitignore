@@ -127,7 +127,8 @@ dist
 .pnp.*
 
 firebase.json
-mongo-volume/
-
-dbinit/*
-!dbinit/.gitkeep
+docker/mongo-volume/
+docker/elasticsearch-data
+docker/dbinit/*
+!docker/dbinit/.gitkeep
+versions/qpackages

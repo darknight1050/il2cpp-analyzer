@@ -21,10 +21,12 @@
     "expose-gc": "^1.0.0",
     "express": "^4.17.1",
     "firebase-admin": "^11.2.0",
+    "leb128": "^0.0.5",
     "lodash": "^4.17.21",
     "mongoosastic": "^5.0.0",
     "mongoose": "^6.7.0",
-    "nodemon": "^2.0.20"
+    "nodemon": "^2.0.20",
+    "structron": "^0.4.3"
   },
   "devDependencies": {
     "jest": "^29.4.3"
