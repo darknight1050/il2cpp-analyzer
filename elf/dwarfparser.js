@@ -121,6 +121,8 @@ const readDWARFLineCU = (inBuffer, startOffset) => {
                 }
                 case DW_LNE_define_file:
                 {
+                    //Unimplemented
+                    console.log("Warning: DW_LNE_define_file unimplemented");
                     break;
                 }
                 case DW_LNE_set_discriminator:
