@@ -2,7 +2,8 @@ const fssync = require("fs"),
     fs = require("fs/promises"),
     fsPath = require("path"),
     gc = require("expose-gc/function"),
-    { readELF, searchDWARFLines } = require("./elfparser");
+    { readELF } = require("./elf/elfparser"),
+    { searchDWARFLines } = require("./elf/dwarfparser");
 
 const BuildIDTypes = {
     JSON: 1,

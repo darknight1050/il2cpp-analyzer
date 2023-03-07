@@ -1,106 +1,5 @@
 const Struct = require("structron");
-
-https://github.com/facebookincubator/oculus-linux-kernel/blob/oculus-quest-kernel-master/include/uapi/linux/elf.h
-
-Struct.TYPES.ULONG = {
-    read(buffer, offset) {
-        return Number(buffer.readBigUInt64LE(offset));
-    },
-    write(value, context, offset) {
-        context.buffer.writeBigUInt64LE(BigInt(value), offset);
-    },
-    SIZE: 8
-};
-
-Struct.TYPES.SBYTE = {
-    read(buffer, offset) {
-      return buffer.readInt8(offset)
-    },
-    write(value, context, offset) {
-      context.buffer.writeInt8(value, offset);
-    },
-    SIZE: 1
-};
-
-const SHT_PROGBITS = 1;
-const SHT_NOTE = 7;
-
-const Elf64_Ehdr = new Struct()
-    .addMember(Struct.TYPES.SKIP(16), "e_ident")
-    .addMember(Struct.TYPES.USHORT, "e_type")
-    .addMember(Struct.TYPES.USHORT, "e_machine")
-    .addMember(Struct.TYPES.UINT, "e_version")
-    .addMember(Struct.TYPES.ULONG, "e_entry")
-    .addMember(Struct.TYPES.ULONG, "e_phoff")
-    .addMember(Struct.TYPES.ULONG, "e_shoff")
-    .addMember(Struct.TYPES.UINT, "e_flags")
-    .addMember(Struct.TYPES.USHORT, "e_ehsize")
-    .addMember(Struct.TYPES.USHORT, "e_phentsize")
-    .addMember(Struct.TYPES.USHORT, "e_phnum")
-    .addMember(Struct.TYPES.USHORT, "e_shentsize")
-    .addMember(Struct.TYPES.USHORT, "e_shnum")
-    .addMember(Struct.TYPES.USHORT, "e_shstrndx");
-
-const Elf64_Shdr = new Struct()
-    .addMember(Struct.TYPES.UINT, "sh_name")
-    .addMember(Struct.TYPES.UINT, "sh_type")
-    .addMember(Struct.TYPES.ULONG, "sh_flags")
-    .addMember(Struct.TYPES.ULONG, "sh_addr")
-    .addMember(Struct.TYPES.ULONG, "sh_offset")
-    .addMember(Struct.TYPES.ULONG, "sh_size")
-    .addMember(Struct.TYPES.UINT, "sh_link")
-    .addMember(Struct.TYPES.UINT, "sh_info")
-    .addMember(Struct.TYPES.ULONG, "sh_addralign")
-    .addMember(Struct.TYPES.ULONG, "sh_entsize");
-
-const Elf64_Nhdr = new Struct()
-    .addMember(Struct.TYPES.UINT, "n_namesz")
-    .addMember(Struct.TYPES.UINT, "n_descsz")
-    .addMember(Struct.TYPES.UINT, "n_type");
-    
-const readNullTerminatedString = (buffer, offset) => {
-    let len = 0;
-    while (buffer.readUInt8(offset + len) != 0) {
-        len++;
-        if (len >= buffer.length) {
-            throw new Error("Null terminated string went outside buffer!");
-        }
-    }
-    return buffer.toString("ASCII", offset, offset + len);
-};
-
-const readArray = (buffer, struct, offset, entsize, num) => {
-    let array = [];
-    for(let i = 0; i < num; i++) {
-        array.push(struct.readContext(buffer, offset + i * entsize).data);
-    }
-    return array;
-}
-
-const readELF = (buffer) => {
-    let buildID = "";
-    let debug_lineSection;
-    const elf = Elf64_Ehdr.readContext(buffer).data;
-    let sectionHeaders = readArray(buffer, Elf64_Shdr, elf.e_shoff, elf.e_shentsize, elf.e_shnum);
-    const shstrtab = sectionHeaders[elf.e_shstrndx]
-    sectionHeaders.forEach(section => {
-        const name = readNullTerminatedString(buffer, shstrtab.sh_offset + section.sh_name);
-        if(section.sh_type == SHT_NOTE && name === ".note.gnu.build-id") {
-            const note = Elf64_Nhdr.readContext(buffer, section.sh_offset).data;
-            if(note.n_descsz == 20) {
-                const buildIDOffset = section.sh_offset + Elf64_Nhdr.SIZE + note.n_namesz;
-                buildID = buffer.toString("hex", buildIDOffset, buildIDOffset + note.n_descsz);
-            }
-        }
-        if(section.sh_type == SHT_PROGBITS && name === ".debug_line") {
-            debug_lineSection = {offset: section.sh_offset, size: section.sh_size};
-        }
-    });
-    return { buildID: buildID, section: debug_lineSection };
-}
-
-
-const leb128 = require("leb128");
+const PositionalBuffer = require("./positionalBuffer");
 
 const DW_LNS_copy = 1;
 const DW_LNS_advance_pc = 2;
@@ -131,35 +30,15 @@ const DWARFDebugLineHeader = new Struct()
     .addMember(Struct.TYPES.BYTE, "line_range")
     .addMember(Struct.TYPES.BYTE, "opcode_base");
 
-const readString = (buffer, offset) => {
-    let len = 0;
-    while (buffer.readUInt8(offset + len) != 0) {
-        len++;
-        if (len >= buffer.length) {
-            throw new Error("Null terminated string went outside buffer!");
-        }
-    }
-    return {value: buffer.toString("ASCII", offset, offset + len), length: len + 1};
-}
-
-const readULEB128 = (buffer, offset) => {
-    let leb = Number(leb128.unsigned.decode(buffer.slice(offset)));
-    return {value: leb, length: leb128.unsigned.encode(leb).length};
-}
-
-const readLEB128 = (buffer, offset) => {
-    let leb = Number(leb128.signed.decode(buffer.slice(offset)));
-    return {value: leb, length: leb128.signed.encode(leb).length};
-}
-
 const searchDWARFLines = (buffer, section, addresses) => {
     const startOffset = section.offset;
     let searchResults = {};
     const compilationUnits = [];
     let offset = startOffset;
     do {
-        const cu = readDWARFLineCU(buffer, offset, startOffset);
-        offset += cu.header.length + 4;
+        const cu = readDWARFLineCU(buffer, offset);
+        //    length (4)
+        offset += 4 + cu.header.length;
         compilationUnits.push(cu);
     } while(offset < startOffset + section.size);
     for (let cu of compilationUnits) {
@@ -177,41 +56,27 @@ const searchDWARFLines = (buffer, section, addresses) => {
     return searchResults;
 }
 
-const readDWARFLineCU = (buffer, startOffset, sectionOffset) => {
-    let offset = startOffset;
-    const header = DWARFDebugLineHeader.readContext(buffer, offset).data;
-    offset += DWARFDebugLineHeader.SIZE;
-    const standard_opcode_lengths = [header.opcode_base];
-    for (let i = 0; i < header.opcode_base - 1; i++)
-        standard_opcode_lengths[i] = buffer.readInt8(offset + i);
-    offset += header.opcode_base - 1;
-
+const readDWARFLineCU = (inBuffer, startOffset) => {
+    const buffer = new PositionalBuffer(inBuffer, startOffset);
+    const header = buffer.readStruct(DWARFDebugLineHeader);
+    const standard_opcode_count = header.opcode_base - 1;
+    const standard_opcode_lengths = [standard_opcode_count];
+    for (let i = 0; i < standard_opcode_count; i++)
+        standard_opcode_lengths[i] = buffer.readUInt8();
+    
     const include_directories = [];
-    while (buffer.readUInt8(offset) != 0) {
-        const str = readString(buffer, offset);
-        include_directories.push(str.value);
-        offset += str.length;
+    while (buffer.readUInt8(0) != 0) {
+        include_directories.push(buffer.readCString());
     }
-    offset += 1;
-    
-    //console.log(header);
-    //console.log(standard_opcode_lengths);
-    //console.log(include_directories);
-    
+    buffer.position += 1;
+
     const file_names = [];
-    while (buffer.readUInt8(offset) != 0) {
-        const name = readString(buffer, offset);
-        offset += name.length;
-        const dir = readULEB128(buffer, offset);
-        offset += dir.length;
-        const time = readULEB128(buffer, offset);
-        offset += time.length;
-        const size = readULEB128(buffer, offset);
-        offset += size.length;
-        file_names.push({name: name.value, dir: dir.value, time: time.value, size: size.value });
+    while (buffer.readUInt8(0) != 0) {
+        file_names.push({name: buffer.readCString(), dir: buffer.readULEB128(), time: buffer.readULEB128(), size: buffer.readULEB128() });
     }
-    //console.log(file_names);
-    offset = startOffset + 4 + 2 + 4 + header.header_length;
+
+    //length (4) + version (2) + header_length (4)
+    buffer.position = 4 + 2 + 4 + header.header_length;
 
     const startRegisters = {
         address: BigInt(0),
@@ -229,17 +94,14 @@ const readDWARFLineCU = (buffer, startOffset, sectionOffset) => {
     }
     const matrix = [];
     let registers = Object.assign({}, startRegisters);
-    while(offset - startOffset < header.length + 4) {
-        const opcodeAddress = offset - sectionOffset;
-        const opcode = buffer.readUInt8(offset);
-        offset += 1;
+    //                  length (4)
+    while(buffer.position < 4 + header.length) {
+        //const opcodeAddress = sectionOffset + buffer.position;
+        const opcode = buffer.readUInt8();
         if(opcode == 0) {
-            const operand = readULEB128(buffer, offset);
-            offset += operand.length;
-            const instruction_length = operand.value;
-            const instruction_end = offset + instruction_length;
-            const extended_opcode = buffer.readUInt8(offset);
-            offset += 1;
+            const instruction_length = buffer.readULEB128();
+            const instruction_end = buffer.position + instruction_length;
+            const extended_opcode = buffer.readUInt8();
             switch(extended_opcode) {
                 case DW_LNE_end_sequence:
                 {
@@ -252,7 +114,7 @@ const readDWARFLineCU = (buffer, startOffset, sectionOffset) => {
                 }
                 case DW_LNE_set_address:
                 {
-                    registers.address = buffer.readBigUInt64LE(offset);
+                    registers.address = buffer.readBigUInt64();
                     registers.op_index = 0;
                     //console.log("[" + (opcodeAddress).toString(16) + "] Extended opcode "  + extended_opcode + ": set Address to "  + registers.address.toString(16));
                     break;
@@ -263,12 +125,11 @@ const readDWARFLineCU = (buffer, startOffset, sectionOffset) => {
                 }
                 case DW_LNE_set_discriminator:
                 {
-                    const operand = readULEB128(buffer, offset);
-                    registers.discriminator = operand.value;
+                    registers.discriminator = buffer.readULEB128();
                     break;
                 }
             }
-            offset = instruction_end;
+            buffer.position = instruction_end;
         } else if(opcode < header.opcode_base) {
             switch(opcode) {
                 case DW_LNS_copy:
@@ -283,9 +144,7 @@ const readDWARFLineCU = (buffer, startOffset, sectionOffset) => {
                 }
                 case DW_LNS_advance_pc:
                 {
-                    const operand = readULEB128(buffer, offset);
-                    offset += operand.length;
-                    const operation_advance = operand.value;
+                    const operation_advance = buffer.readULEB128();
                     const advanceAddress = BigInt(Math.floor(header.minimum_instruction_length * ((registers.op_index + operation_advance)/header.maximum_operations_per_instruction)));
                     registers.address += advanceAddress;
                     if(header.maximum_operations_per_instruction != 1)
@@ -295,25 +154,19 @@ const readDWARFLineCU = (buffer, startOffset, sectionOffset) => {
                 }
                 case DW_LNS_advance_line:
                 {
-                    const operand = readLEB128(buffer, offset);
-                    offset += operand.length;
-                    registers.line += operand.value;
+                    registers.line += buffer.readLEB128();
                     //console.log("[" + (opcodeAddress).toString(16) + "] Advance Line by " + operand.value + " to " + registers.line);
                     break;
                 }
                 case DW_LNS_set_file:
                 {
-                    const operand = readULEB128(buffer, offset);
-                    offset += operand.length;
-                    registers.file = operand.value;
+                    registers.file = buffer.readULEB128();
                     //console.log("[" + (opcodeAddress).toString(16) + "] Set File Name to entry " +  registers.file + " in the File Name Table");
                     break;
                 }
                 case DW_LNS_set_column:
                 {
-                    const operand = readULEB128(buffer, offset);
-                    offset += operand.length;
-                    registers.column = operand.value;
+                    registers.column = buffer.readULEB128();
                     //console.log("[" + (opcodeAddress).toString(16) + "] Set column to " + registers.column);
                     break;
                 }
@@ -341,9 +194,7 @@ const readDWARFLineCU = (buffer, startOffset, sectionOffset) => {
                 }
                 case DW_LNS_fixed_advance_pc:
                 {
-                    const operand = buffer.readUInt16LE(offset);
-                    offset += 2;
-                    registers.address += BigInt(operand);
+                    registers.address += BigInt(buffer.readUInt16());
                     registers.op_index = 0;
                     //console.log("[" + (opcodeAddress).toString(16) + "] Advance PC by fixed " + operand + " to " + registers.address.toString(16));
                     break;
@@ -362,15 +213,13 @@ const readDWARFLineCU = (buffer, startOffset, sectionOffset) => {
                 }
                 case DW_LNS_set_isa:
                 {
-                    const operand = readULEB128(buffer, offset);
-                    offset += operand.length;
-                    registers.isa = operand.value;
+                    registers.isa = buffer.readULEB128();
                     break;
                 }
                 default:
                 {   
                     for(let i = 0; i < standard_opcode_lengths[opcode - 1]; i++) 
-                        offset += readULEB128(buffer, offset).length;
+                        buffer.readULEB128();
                     break;
                 }
             }
@@ -401,6 +250,4 @@ const readDWARFLineCU = (buffer, startOffset, sectionOffset) => {
     }
 }
 
-
-
-module.exports = { readELF, searchDWARFLines };
+module.exports = { searchDWARFLines };

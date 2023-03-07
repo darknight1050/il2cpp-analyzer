@@ -14,6 +14,7 @@
   "author": "darknight1050",
   "dependencies": {
     "axios": "^0.26.0",
+    "bn.js": "^5.2.1",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
@@ -21,7 +22,6 @@
     "expose-gc": "^1.0.0",
     "express": "^4.17.1",
     "firebase-admin": "^11.2.0",
-    "leb128": "^0.0.5",
     "lodash": "^4.17.21",
     "mongoosastic": "^5.0.0",
     "mongoose": "^6.7.0",
