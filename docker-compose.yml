@@ -17,7 +17,7 @@ services:
     cap_add:
       - IPC_LOCK
     volumes:
-      - ./docker/elasticsearch-data:/usr/share/elasticsearch/data
+      - elasticsearch-data:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
       - 9300:9300
@@ -31,7 +31,7 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=root
     volumes:
       - ./docker/dbinit/:/docker-entrypoint-initdb.d/:ro
-      - ./docker/mongo-volume:/data/db
+      - mongo-data:/data/db
     ports:
       - 27027:27027
   mongo-express:
@@ -52,3 +52,6 @@ services:
 volumes:
   elasticsearch-data:
     driver: local
+  mongo-data:
+    driver: local
+  
