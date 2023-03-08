@@ -1,4 +1,5 @@
 const Struct = require("structron");
+require("./types");
 const PositionalBuffer = require("./positionalBuffer");
 
 const DW_LNS_copy = 1;
@@ -44,11 +45,15 @@ const searchDWARFLines = (buffer, section, addresses) => {
     for (let cu of compilationUnits) {
         for (let i = 1; i < cu.matrix.length; i++) {
             const register = cu.matrix[i];
-            addresses.filter(address => !searchResults[address]).forEach(address => {
+            addresses.forEach(address => {
                 if(register.address > address) {
                     const lastRegister = cu.matrix[i-1];
                     const file = cu.file_names[lastRegister.file-1];
                     searchResults[address] = { file: cu.include_directories[file.dir-1] + "/" + file.name, line: lastRegister.line, column: lastRegister.column };
+                    
+                    addresses.splice(addresses.indexOf(address), 1);
+                    if (addresses.length <= 0)
+                        return searchResults;
                 }
             });
         }
