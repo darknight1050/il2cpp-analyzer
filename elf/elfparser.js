@@ -60,7 +60,7 @@ const readArray = (buffer, struct, offset, entsize, num) => {
 
 const readELF = (buffer) => {
     let buildID = "";
-    let debug_lineSection;
+    const sections = {};
     const elf = Elf64_Ehdr.readContext(buffer).data;
     let sectionHeaders = readArray(buffer, Elf64_Shdr, elf.e_shoff, elf.e_shentsize, elf.e_shnum);
     const shstrtab = sectionHeaders[elf.e_shstrndx]
@@ -73,11 +73,9 @@ const readELF = (buffer) => {
                 buildID = buffer.toString("hex", buildIDOffset, buildIDOffset + note.n_descsz);
             }
         }
-        if(section.sh_type == SHT_PROGBITS && name === ".debug_line") {
-            debug_lineSection = {offset: section.sh_offset, size: section.sh_size};
-        }
+        sections[name] = {offset: section.sh_offset, size: section.sh_size};
     });
-    return { buildID: buildID, section: debug_lineSection };
+    return { buildID: buildID, sections: sections };
 }
 
 module.exports = { readELF };
