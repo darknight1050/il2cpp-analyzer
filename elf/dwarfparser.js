@@ -48,49 +48,54 @@ const searchDWARFLines = (inBuffer, sections, addresses) => {
     const buffer = new PositionalBuffer(inBuffer);
     let offset = 0;
     do {
-        const cu = readDWARFInfoCU(buffer, sections, offset);
+        const cu = readDWARFInfoCUStart(buffer, sections, offset);
         //    length (4)
         offset += 4 + cu.header.unit_length;
         const stmt_list = cu.topDebugInformationEntry.attributes[DWARFEncodings.DW_AT_stmt_list];
         for(const address of Object.assign([], addresses)) {
-            const searchResult = [];
-            for (let i = 1; i < stmt_list.matrix.length; i++) {
-                const register = stmt_list.matrix[i];
-                if(register.address > address) {
-                    const lastRegister = stmt_list.matrix[i-1];
-                    const file = stmt_list.file_names[lastRegister.file-1];
-                    let directory;
-                    if(file.dir == 0) {
-                        directory = cu.topDebugInformationEntry.attributes[DWARFEncodings.DW_AT_comp_dir];
-                    } else {
-                        directory = stmt_list.include_directories[file.dir-1];
-                    }
-                    searchResult.push({ file: directory + "/" + file.name, line: lastRegister.line, column: lastRegister.column });
-                    break;
-                }
-            }
-            const result = searchDIE(cu.topDebugInformationEntry, address);
-            if(result) {
-                let currentDebugInformationEntry = result;
-                while(currentDebugInformationEntry) {
-                    if(currentDebugInformationEntry.attributes[DWARFEncodings.DW_AT_call_file]) {
-                        const file = stmt_list.file_names[currentDebugInformationEntry.attributes[DWARFEncodings.DW_AT_call_file]-1];
+            if(isAddressInDIE(cu.topDebugInformationEntry, address)) {
+                if(!cu.fullRead)
+                    readDWARFInfoCUFull(cu, sections);
+                const lines = readDWARFLineCU(buffer, sections, stmt_list);
+                const searchResult = [];
+                for (let i = 1; i < lines.matrix.length; i++) {
+                    const register = lines.matrix[i];
+                    if(register.address > address) {
+                        const lastRegister = lines.matrix[i-1];
+                        const file = lines.file_names[lastRegister.file-1];
                         let directory;
                         if(file.dir == 0) {
                             directory = cu.topDebugInformationEntry.attributes[DWARFEncodings.DW_AT_comp_dir];
                         } else {
-                            directory = stmt_list.include_directories[file.dir-1];
+                            directory = lines.include_directories[file.dir-1];
                         }
-                        searchResult.push({ file: directory + "/" + file.name, line: currentDebugInformationEntry.attributes[DWARFEncodings.DW_AT_call_line], column: currentDebugInformationEntry.attributes[DWARFEncodings.DW_AT_call_column] });
+                        searchResult.push({ file: directory + "/" + file.name, line: lastRegister.line, column: lastRegister.column });
+                        break;
                     }
-                    currentDebugInformationEntry = currentDebugInformationEntry.parent;
                 }
-            }
-            if(searchResult.length > 0) {
-                searchResults[address] = searchResult;
-                addresses.splice(addresses.indexOf(address), 1);
-                if (addresses.length <= 0)
-                    return searchResults;
+                const result = searchDIE(cu.topDebugInformationEntry, address);
+                if(result) {
+                    let currentDebugInformationEntry = result;
+                    while(currentDebugInformationEntry) {
+                        if(currentDebugInformationEntry.attributes[DWARFEncodings.DW_AT_call_file]) {
+                            const file = lines.file_names[currentDebugInformationEntry.attributes[DWARFEncodings.DW_AT_call_file]-1];
+                            let directory;
+                            if(file.dir == 0) {
+                                directory = cu.topDebugInformationEntry.attributes[DWARFEncodings.DW_AT_comp_dir];
+                            } else {
+                                directory = lines.include_directories[file.dir-1];
+                            }
+                            searchResult.push({ file: directory + "/" + file.name, line: currentDebugInformationEntry.attributes[DWARFEncodings.DW_AT_call_line], column: currentDebugInformationEntry.attributes[DWARFEncodings.DW_AT_call_column] });
+                        }
+                        currentDebugInformationEntry = currentDebugInformationEntry.parent;
+                    }
+                }
+                if(searchResult.length > 0) {
+                    searchResults[address] = searchResult;
+                    addresses.splice(addresses.indexOf(address), 1);
+                    if (addresses.length <= 0)
+                        return searchResults;
+                }
             }
         }
     } while(offset < sections[".debug_info"].size);
@@ -299,17 +304,6 @@ const DWARFDebugInfoHeader = new Struct()
     .addMember(Struct.TYPES.UINT, "debug_abbrev_offset")
     .addMember(Struct.TYPES.BYTE, "address_size");
 
-const readCUs = (inBuffer, sections) => {
-    const buffer = new PositionalBuffer(inBuffer);
-    const compilationUnits = [];
-    let offset = 0;
-    do {
-        const cu = readDWARFInfoCU(buffer, sections, offset);
-        //    length (4)
-        offset += 4 + cu.header.unit_length;
-        compilationUnits.push(cu);
-    } while(offset < sections[".debug_info"].size);
-}
 
 const logChildren = (debugInformationEntry, level) => {
     console.log(level);
@@ -323,12 +317,31 @@ const logChildren = (debugInformationEntry, level) => {
     }
 }
 
-const readDWARFInfoCU = (inBuffer, sections, offset) => {
+const readDWARFInfoCUStart = (inBuffer, sections, offset) => {
     const buffer = inBuffer.copy(sections[".debug_info"].offset + offset);
     const header = buffer.readStruct(DWARFDebugInfoHeader);
     const abbreviations = readDWARFAbbreviationTable(inBuffer, sections, header.debug_abbrev_offset);
-    let topDebugInformationEntry;
-    let parentDebugInformationEntry;
+    const address = buffer.position;
+    const abbreviationCode = buffer.readULEB128();
+    const abbreviation = abbreviations[abbreviationCode];
+    const debugInformationEntry = { 
+        address: offset + address,
+        tag: abbreviation.tag,
+        children: [],
+        attributes: {}
+    };
+    for(const attribute of abbreviation.attributes) {
+        debugInformationEntry.attributes[attribute.name] = readDWARFAttribute(buffer, sections, debugInformationEntry, attribute);
+    }
+    return { buffer: buffer, header: header, abbreviations: abbreviations, topDebugInformationEntry: debugInformationEntry, fullRead: false };
+}
+
+const readDWARFInfoCUFull = (compilationUnit, sections) => {
+    const offset = compilationUnit.offset;
+    const buffer = compilationUnit.buffer;
+    const header = compilationUnit.header;
+    const abbreviations = compilationUnit.abbreviations;
+    let parentDebugInformationEntry = compilationUnit.topDebugInformationEntry;
     while(buffer.position < header.unit_length) {
         const address = buffer.position;
         const abbreviationCode = buffer.readULEB128();
@@ -343,21 +356,17 @@ const readDWARFInfoCU = (inBuffer, sections, offset) => {
                 children: [],
                 attributes: {}
             };
-
             if(abbreviation.hasChildren)
                 parentDebugInformationEntry = debugInformationEntry;
-            if(debugInformationEntry.parent) {
+            if(debugInformationEntry.parent)
                 debugInformationEntry.parent.children.push(debugInformationEntry);
-            } else {
-                topDebugInformationEntry = debugInformationEntry;
-            }
             for(const attribute of abbreviation.attributes) {
                 debugInformationEntry.attributes[attribute.name] = readDWARFAttribute(buffer, sections, debugInformationEntry, attribute);
             }
         }
     }
     //logChildren(topCompilationUnit, 0);
-    return { header: header, topDebugInformationEntry: topDebugInformationEntry };
+    compilationUnit.fullRead = true;
 }
 
 const readDWARFAbbreviationTable = (inBuffer, sections, offset) => {
@@ -470,10 +479,6 @@ const readDWARFAttribute = (buffer, sections, debugInformationEntry, attribute) 
         case DWARFEncodings.DW_AT_high_pc:
         {
             return debugInformationEntry.attributes[DWARFEncodings.DW_AT_low_pc] + BigInt(readUConstant(form, value));
-        }
-        case DWARFEncodings.DW_AT_stmt_list:
-        {
-            return readDWARFLineCU(buffer, sections, value);
         }
         case DWARFEncodings.DW_AT_ranges:
         {
