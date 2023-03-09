@@ -1,0 +1,126 @@
+<html>
+  <head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <style>
+      html {
+        background-color: #0d1117;
+        font-family: "Poppins", sans-serif;
+      }
+
+      body {
+        padding: 0;
+        margin: 0;
+        min-height: 100vh;
+      }
+
+      .main {
+        display: grid;
+        grid-template-rows: 44px 1fr;
+        height: 100%;
+      }
+
+      .tab {
+        overflow: hidden;
+      }
+
+      .tab button {
+        color: #ffa657;
+        background-color: #141b25;
+        float: left;
+        border: none;
+        border-radius: 3px;
+        outline: none;
+        cursor: pointer;
+        padding: 14px 16px;
+        transition: 0.3s;
+      }
+
+      .tab button:hover {
+        background-color: #1f2a3a;
+      }
+
+      .tab button.active {
+        background-color: #30363d;
+      }
+
+      textarea {
+        color: #ffa657;
+        background-color: #0d1117;
+        border-color: #30363d;
+        border-radius: 0px;
+        white-space: pre;
+        overflow: auto;
+        width: 100%;
+        resize: none;
+        font-family: "Roboto Mono", monospace;
+      }
+
+      textarea:focus {
+        outline-width: 0;
+      }
+
+      textarea::-webkit-scrollbar {
+        width: 18px;
+      }
+
+      textarea::-webkit-scrollbar-corner {
+        background: #161b22;
+      }
+
+      textarea::-webkit-scrollbar-track {
+        background: #161b22;
+      }
+
+      textarea::-webkit-scrollbar-thumb {
+        background-color: #30363d;
+        border: 3px solid #161b22;
+        border-radius: 16px;
+      }
+      .header {
+        display: flex;
+        flex-direction: row;
+      }
+
+      .info {
+        flex: 1;
+        text-align: right;
+        display: flex;
+        color: rgb(137, 206, 206);
+        align-items: center;
+        justify-content: end;
+        margin-right: 10px;
+      }
+      .info p {
+        padding-left: 10px;
+        text-align: left;
+        font-size: 0.6rem;
+      }
+      .info p span {
+        margin-top: -4px;
+        color: #ffa657;
+        font-size:1rem;
+      }
+
+      .info a {
+        color: #ffa657;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="main">
+        <form ref="uploadForm" 
+        id="uploadForm" 
+        action="/api/uploadDebug" 
+        method="post" 
+        encType="multipart/form-data">
+            <input type="file" name="debug" />
+            <input type="submit" value="Upload!" />
+        </form>     
+    </div>
+  </body>
+  <script>
+  </script>
+</html>

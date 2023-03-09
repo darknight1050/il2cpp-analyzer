@@ -204,4 +204,4 @@ const getBeatsaberVersionFromStacktrace = (stacktrace) => {
     }
 }
 
-module.exports = { getBuildIDs, analyzeBuildIDs, analyzeStacktrace, loadVersions, getBeatsaberVersionFromStacktrace, getBeatSaberVersions };
+module.exports = { getBuildIDs, analyzeBuildIDs, analyzeStacktrace, loadVersions, getBeatsaberVersionFromStacktrace, getBeatSaberVersions, readVersion };

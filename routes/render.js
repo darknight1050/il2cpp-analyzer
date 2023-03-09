@@ -18,6 +18,10 @@ module.exports = (app) => {
         res.render("index");
     });
 
+    app.get("/uploadDebug", async (req, res) => {
+        res.render("uploadDebug");
+    });
+
     app.get("/crashes", async (req, res) => {
         // Get game version for select
         if (bsVersions.length === 0) {

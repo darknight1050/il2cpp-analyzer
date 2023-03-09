@@ -1,9 +1,11 @@
 const _ = require("lodash"),
-    { getBuildIDs, analyzeBuildIDs, analyzeStacktrace } = require("../analyzer"),
+    { getBuildIDs, analyzeBuildIDs, analyzeStacktrace, readVersion } = require("../analyzer"),
     { storeCrash, getCrashes, getCrash } = require("../storage/storageMongoDB"),
+    { readELF } = require("../elf/elfparser"),
     axios = require("axios"),
-    express = require("express");
+    express = require("express")
 
+const versionsPath = "./versions/uploaded";
 String.prototype.insert = function(idx, str) {
     return this.slice(0, idx) + str + this.slice(idx);
 };
@@ -17,7 +19,7 @@ module.exports = (app) => {
         res.status(200).json({ versions: getBuildIDs() });
     });
 
-    app.post("/api/analyze", express.json({limit: "10mb"}), async (req, res) => {
+    app.post("/api/analyze", express.json({limit: "32mb"}), async (req, res) => {
         if (_.isEmpty(req.body)) {
             res.status(400).json({
                 error: "No body!"
@@ -95,7 +97,7 @@ module.exports = (app) => {
         }
     });
 
-    app.post("/api/upload", express.json({limit: "10mb"}), async (req, res) => {
+    app.post("/api/upload", express.json({limit: "32mb"}), async (req, res) => {
         let code = 400;
         let data;
         if (_.isEmpty(req.body)) {
@@ -109,6 +111,34 @@ module.exports = (app) => {
             data = await storeCrash(req.body);
         }
         res.status(code).setHeader("Content-Type", "text/plain").send(data);
+    });
+
+    app.post("/api/uploadDebug", async (req, res) => {
+        const file = req.files?.debug;
+        if(file) {
+            try {
+                const elf = readELF(file.data);
+                if(elf.buildID && elf.sections[".debug_info"] && elf.sections[".debug_abbrev"] && elf.sections[".debug_str"] && elf.sections[".debug_line"] && elf.sections[".debug_ranges"]) {
+                    const filePath = versionsPath + "/" + elf.buildID + ".so";
+                    file.mv(filePath, (err) => {
+                        if (err)
+                            return res.status(500).send(err);
+                  
+                        res.status(200).send("File uploaded!");
+                        readVersion(filePath);
+                    });
+                } else {
+                    res.status(400).json({message: "Can't find debug sections!"});
+                    return;
+                }
+            } catch (err) {
+                res.status(400).json({message: "Invalid elf file!"});
+                return;
+            }
+        } else {
+            res.status(400).json({message: "No file!"});
+            return;
+        }
     });
 
 }

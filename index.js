@@ -5,14 +5,20 @@ require('dotenv').config()
 const http = require("http"),
     express = require("express"),
     app = express(),
-    cors = require("cors");
+    cors = require("cors"),
+    fileUpload = require("express-fileupload");
 
 const server = http.createServer(app);
 
 app.set("view engine", "ejs");
-app.use('/static', express.static('public'))
+app.use("/static", express.static("public"))
 
 app.use(cors());
+
+app.use(fileUpload({
+    createParentPath: true,
+    limits: { fileSize: 128 * 1024 * 1024 },
+  }));
 
 require("./routes/router")(app);
 

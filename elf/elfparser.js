@@ -59,7 +59,7 @@ const readArray = (buffer, struct, offset, entsize, num) => {
 }
 
 const readELF = (buffer) => {
-    let buildID = "";
+    let buildID;
     const sections = {};
     const elf = Elf64_Ehdr.readContext(buffer).data;
     let sectionHeaders = readArray(buffer, Elf64_Shdr, elf.e_shoff, elf.e_shentsize, elf.e_shnum);
