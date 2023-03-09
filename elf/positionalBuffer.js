@@ -5,22 +5,27 @@ const assert = require("assert"),
 
 class PositionalBuffer {
 
-    constructor(buffer, position = 0) {
+    constructor(buffer, startPosition = 0) {
         assert(Buffer.isBuffer(buffer), "No buffer");
-        this._buffer = Uint8Array.prototype.slice.call(buffer, position);
-        this._position = 0;
+        this._buffer = buffer;
+        this._startPosition = startPosition;
+        this._position = startPosition;
     }
     
     get position() {
-        return this._position;
+        return this._position - this._startPosition;
     }
 
     set position(value) {
-        this._position = Number(value);
+        this._position = this._startPosition + Number(value);
     }
 
     get buffer() {
         return this._buffer;
+    }
+
+    copy(startPosition = 0) {
+        return new PositionalBuffer(this._buffer, startPosition);
     }
 
     readInt8(length = 1) {
@@ -130,6 +135,12 @@ class PositionalBuffer {
         }
         const result = this._buffer.toString("ASCII", this._position, this._position + len);
         this._position += len + 1;
+        return result;
+    }
+
+    readBuffer(length) {
+        const result = Uint8Array.prototype.slice.call(this._buffer, this._position, this._position + length);
+        this._position += length;
         return result;
     }
 

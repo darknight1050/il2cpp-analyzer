@@ -39,9 +39,9 @@ const readVersion = async (path) => {
             case "so":
             {
                 const elf = readELF(buffer);
-                if(elf.section) {
+                if(elf.sections) {
                     console.log("Loaded " + name + ": " + elf.buildID);
-                    availableBuildIDs[elf.buildID] = {name: name, section: elf.section, type: BuildIDTypes.SO};
+                    availableBuildIDs[elf.buildID] = {name: name, sections: elf.sections, type: BuildIDTypes.SO};
                 } else {
                     console.log("Couldn't find .debug section in " + name);
                 }
@@ -102,8 +102,8 @@ const analyzeJson = (json, addresses) => {
     return analyzed;
 }
 
-const analyzeSo = (buffer, section, addresses) => {
-    return searchDWARFLines(buffer, section, addresses);
+const analyzeSo = (buffer, sections, addresses) => {
+    return searchDWARFLines(buffer, sections, addresses);
 }
 
 const analyzeBuildIDs = (buildIDs) => {
@@ -122,7 +122,7 @@ const analyzeBuildIDs = (buildIDs) => {
                     }
                     case BuildIDTypes.SO:
                     {
-                        analyzed[buildID] = analyzeSo(buffer, buildIDData.section,  addresses);
+                        analyzed[buildID] = analyzeSo(buffer, buildIDData.sections,  addresses);
                         break;
                     }
                 }
@@ -166,9 +166,13 @@ const analyzeStacktrace = (stacktrace) => {
                 {
                     const insertPos = match.indices.groups.insertSo[0];
                     const lineStart = stacktrace.lastIndexOf("\n", insertPos) + 1;
-                    const lineEnd = stacktrace.indexOf("\n", insertPos) + 1;
-                    const textInsert = " ".repeat(insertPos - lineStart) + result.file + ":" + result.line + ":" + result.column + "\n";
-                    stacktrace = stacktrace.insert(lineEnd, textInsert);
+                    let lineEnd = stacktrace.indexOf("\n", insertPos) + 1;
+                    const spaces = " ".repeat(insertPos - lineStart);
+                    for(const entry of result) {
+                        const textInsert = spaces + entry.file + ":" + entry.line + ":" + entry.column + "\n";
+                        stacktrace = stacktrace.insert(lineEnd, textInsert);
+                        lineEnd += textInsert.length;
+                    }
                     break;
                 }
             }
