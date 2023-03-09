@@ -193,7 +193,7 @@
         let uploadDate = document.getElementById("uploadDate");
         // Format date to be more readable
         if (crash.uploadDate) {
-          let date = new Date(crash.uploadDate).toISOString().replace(/T/, ' ').replace(/\..+/, '');
+          let date = new Date(new Date(crash.uploadDate) - (new Date()).getTimezoneOffset() * 60000).toISOString().replace(/T/, ' ').replace(/\..+/, '');
           uploadDate.innerHTML = date;
         } else {
           uploadDate.innerHTML = "?";

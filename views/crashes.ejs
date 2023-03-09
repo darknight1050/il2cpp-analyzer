@@ -159,7 +159,7 @@ a:hover {
         const date = document.createElement("div");
         date.classList.add("coloumn");
         date.classList.add("date");
-        date.innerText = new Date(crash.uploadDate).toISOString().
+        date.innerText = new Date(new Date(crash.uploadDate) - (new Date()).getTimezoneOffset() * 60000).toISOString().
             replace(/T/, ' ').      // replace T with a space
             replace(/\..+/, '')     // delete the dot and everything after
         const userId = document.createElement("a");
