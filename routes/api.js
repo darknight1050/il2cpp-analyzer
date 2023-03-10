@@ -91,7 +91,7 @@ module.exports = (app) => {
         }
         const crash = await getCrash(req.params.crashId, req.query.original?.toLowerCase() === "true" ? true : false);
         if(crash) {
-            res.status(200).setHeader("Content-Type", "application/json").send(crash);
+            res.status(200).json(crash);
         } else {
             res.status(404).end();
         }
@@ -123,8 +123,8 @@ module.exports = (app) => {
                     file.mv(filePath, (err) => {
                         if (err)
                             return res.status(500).send(err);
-                  
-                        res.status(200).send("File uploaded!");
+                        res.status(200).json({ buildId: elf.buildID });
+                        console.log("File " + file.name + " uploaded to: " + filePath);
                         readVersion(filePath);
                     });
                 } else {

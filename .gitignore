@@ -132,3 +132,4 @@ docker/elasticsearch-data
 docker/dbinit/*
 !docker/dbinit/.gitkeep
 versions/qpackages
+versions/uploaded
