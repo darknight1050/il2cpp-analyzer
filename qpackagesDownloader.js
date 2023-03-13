@@ -34,6 +34,7 @@ const getDownloadedPackages = () => {
 }
 
 const downloadPackages = async () => {
+    const newFiles = [];
     const downloadedPackages = getDownloadedPackages();
     const packages = await axios.get(baseUrl)
         .then(res => res.data)
@@ -41,8 +42,8 @@ const downloadPackages = async () => {
             console.log(baseUrl + ": Error: " + e.message);
         });
     if(packages) {
-        console.log("Got packages");
-        console.log(packages);
+        //console.log("Got packages");
+        //console.log(packages);
         for(let package of packages) {
             const downloadedPackage = downloadedPackages.find(downloadedPackage => downloadedPackage.name == package);
             const versions = await axios.get(baseUrl + package + "?limit=0")
@@ -51,10 +52,10 @@ const downloadPackages = async () => {
                     console.log(baseUrl + package + "?limit=0" + ": Error: " + e.message);
                 });
             if(versions) {
-                console.log("Got versions for " + package);
+                //console.log("Got versions for " + package);
                 for(let version of versions) {
                     if(!downloadedPackage || !downloadedPackage.versions.includes(version.version)) {
-                        console.log("Version " + version.version + " for " + package + " not downloaded yet");
+                        //console.log("Version " + version.version + " for " + package + " not downloaded yet");
                         if (!fs.existsSync(versionsPath + "/" + package))
                             fs.mkdirSync(versionsPath + "/" + package);
                         const path = versionsPath + "/" + package + "/" + version.version + ".so";
@@ -64,12 +65,12 @@ const downloadPackages = async () => {
                                 console.log(baseUrl + package + "/" + version.version + ": Error: ", e.message);
                             }); 
                         if(additionalData) {
-                            console.log("Got version " + version.version + " for " + package);
+                            //console.log("Got version " + version.version + " for " + package);
                             const debugSoLink = additionalData.debugSoLink;
                             if(!additionalData.staticLinking && debugSoLink) {
-                                axios.get(debugSoLink, { responseType: "stream" })
+                                await axios.get(debugSoLink, { responseType: "stream" })
                                     .then(res => {
-                                       const writer = fs.createWriteStream(path, res.data);
+                                        const writer = fs.createWriteStream(path, res.data);
                                         return new Promise((resolve, reject) => {
                                             res.data.pipe(writer);
                                             let error = null;
@@ -80,6 +81,7 @@ const downloadPackages = async () => {
                                             });
                                             writer.on("close", () => {
                                                 if (!error) {
+                                                    newFiles.push(path);
                                                     console.log("Downloaded version " + version.version + " for " + package);
                                                     resolve(true);
                                                 } else {
@@ -109,6 +111,7 @@ const downloadPackages = async () => {
     } else {
         console.log("Couldn't get packages");
     }
+    return newFiles;
 }
 
 module.exports = { downloadPackages };

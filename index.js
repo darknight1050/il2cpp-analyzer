@@ -1,4 +1,5 @@
-const { loadVersions } = require('./analyzer');
+const { loadVersions, readVersion } = require('./analyzer'),
+    { downloadPackages } = require('./qpackagesDownloader');
 
 require('dotenv').config()
 
@@ -32,13 +33,19 @@ app.use(async (err, req, res, next) => {
 });
 let port = process.env.PORT || 5000;
 
-async function start (){
+const updatePackages = async () => {
+    for(const path of await downloadPackages()) {
+        readVersion(path);
+    }
+}
+
+const start  = async () => {
     // Wait for all versions to be loaded before starting the server
     await loadVersions();
     
-    server.listen(port, () =>
-    console.log(`Server has started on port: ${port}`)
-);
+    server.listen(port, () => console.log(`Server has started on port: ${port}`));
+        
+    updatePackages();
+    setInterval(updatePackages, 60 * 60 * 1000);
 }
 start();
-
