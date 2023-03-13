@@ -62,14 +62,14 @@ const readVersion = async (path) => {
 
 const readVersionsDir = async (path) => {
     let files = await fs.readdir(path, { withFileTypes: true });
-
+    const threads = [];
     for (let file of files) {
         if (file.isDirectory())
-            await readVersionsDir(path + "/" + file.name);
-        if (file.isFile()) {
-            await readVersion(path + "/" + file.name);
-        }
+            threads.push(readVersionsDir(path + "/" + file.name));
+        if (file.isFile())
+            threads.push(readVersion(path + "/" + file.name));
     }
+    await Promise.all(threads);
 }
 
 const loadVersions = async () => {
