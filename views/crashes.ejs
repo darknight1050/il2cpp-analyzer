@@ -1,235 +1,235 @@
 <html>
-<head>
-    <title>Search <%= (queryParams.search || queryParams.userId)  %></title>
-<style>
-html {
-    background-color: #0d1117;
-}
+    <head>
+        <title>Search <%= (queryParams.search || queryParams.userId)  %></title>
+        <style>
+            html {
+                background-color: #0d1117;
+            }
 
-body {
-    padding: 0;
-    margin: 0;
-    min-height: 100vh;;
-}
+            body {
+                padding: 0;
+                margin: 0;
+                min-height: 100vh;;
+            }
 
-.main {
-    height: 100%;
-}
+            .main {
+                height: 100%;
+            }
 
-#crashes div {
-    display: flex;
-}
+            #crashes div {
+                display: flex;
+            }
 
-#crashes {
-    display: grid;
-    grid-template-rows: 1fr;
-}
+            #crashes {
+                display: grid;
+                grid-template-rows: 1fr;
+            }
 
-a, ol {
-    text-decoration: none;
-    color: #ffa657;
-}
+            a, ol {
+                text-decoration: none;
+                color: #ffa657;
+            }
 
-a:hover {
-    color: #cf8647;
-}
+            a:hover {
+                color: #cf8647;
+            }
 
-.crashId {
-    width: 84px;
-    margin: 0 0 0 6;
-}
+            .crashId {
+                width: 84px;
+                margin: 0 0 0 6;
+            }
 
-.date {
-    width: 166px;
-}
+            .date {
+                width: 166px;
+            }
 
-.gameVersion {
-    width: 60px;
-}
+            .gameVersion {
+                width: 60px;
+            }
 
-.userId {
-    width: auto;
-}
+            .userId {
+                width: auto;
+            }
 
-.search-form {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    margin: 0 0 0 0;
-    min-width: 600px;
-    width: 100%;
-    
-    background-color: #151c26;
-}
-
-
-.search-form input {
-    background-color: #151c26;
-    border: 1px solid #0d1117;
-    color: #ffa657;
-    padding: 6px 12px;
-    margin: 0 0 0 6;
-    border-radius: 6px;
-}
-
-.search-form input[name="search"] {
-    flex-grow: 1;
-}
-
-.search-form select {
-    background-color: #151c26;
-    border: 1px solid #0d1117;
-    color: #ffa657;
-    padding: 6px 12px;
-    margin: 0 0 0 6;
-    border-radius: 6px;
-}
-.content {
-    position: relative;
-    min-height: 200px;
-}
-
-.loading {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1;
-    color: #ffa657;
-}
-.loading.hidden { 
-    display: none;
-}
-.loading.error {
-    color: red;
-}
+            .search-form {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                margin: 0 0 0 0;
+                min-width: 600px;
+                width: 100%;
+                
+                background-color: #151c26;
+            }
 
 
-</style>
-</head>
-<body>
-    <div class="main">
-        <form  class="search-form" action="/crashes" method="get" >
-            <input type="text" name="search" placeholder="Search..." <% if (queryParams.search){%>value="<%=queryParams.search %>"<% } %> />
-            <!-- select Date limit last month last year -->
-            <select name="date" value="<%= queryParams.date %>">
-                <option value="0" <% if (!queryParams.date || queryParams.date == "0" ){ %> selected <% } %> >All</option>
-                <option value="1"  <% if (queryParams.date && queryParams.date == "1" ){%>selected <% } %> >Last 24 hours</option>
-                <option value="7" <% if (queryParams.date && queryParams.date == "7" ){%>selected <% } %>>Last 7 days</option>
-                <option value="30" <% if (queryParams.date && queryParams.date == "30" ){%>selected <% } %>>Last 30 days</option>
-                <option value="365" <% if (queryParams.date && queryParams.date == "365" ){%>selected <% } %>>Last 365 days</option>
-            </select>
-            <!-- username -->
-            <input type="text" name="userId" placeholder="User ID" <% if (queryParams.userId){%>value="<%=queryParams.userId %>"<% } %> />
-            <input type="number" name="limit" placeholder="Limit" max="9999" min="10" <% if (queryParams.limit){%>value="<%= queryParams.limit || "200" %>"<% } %> />
-            <select name="version">
-                <option value="all" <% if (!queryParams.version || queryParams.version == "all" ){ %> selected <% } %> >All</option>
-                <% for (let version of bsVersions) { %>
-                    <option value="<%= version.value %>" <% if (queryParams.version && queryParams.version == version.value ){ %> selected <% } %> ><%= version.name %></option>
-                <% } %>
-            </select>    
+            .search-form input {
+                background-color: #151c26;
+                border: 1px solid #0d1117;
+                color: #ffa657;
+                padding: 6px 12px;
+                margin: 0 0 0 6;
+                border-radius: 6px;
+            }
 
-            <input type="submit" value="Search" />
-        </form>
+            .search-form input[name="search"] {
+                flex-grow: 1;
+            }
 
-        <div class="content">
-            <div class="loading">
-                <div>Loading...</div>
+            .search-form select {
+                background-color: #151c26;
+                border: 1px solid #0d1117;
+                color: #ffa657;
+                padding: 6px 12px;
+                margin: 0 0 0 6;
+                border-radius: 6px;
+            }
+            .content {
+                position: relative;
+                min-height: 200px;
+            }
+
+            .loading {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1;
+                color: #ffa657;
+            }
+            .loading.hidden { 
+                display: none;
+            }
+            .loading.error {
+                color: red;
+            }
+
+
+        </style>
+    </head>
+    <body>
+        <div class="main">
+            <form  class="search-form" action="/crashes" method="get" >
+                <input type="text" name="search" placeholder="Search..." <% if (queryParams.search){%>value="<%=queryParams.search %>"<% } %> />
+                <!-- select Date limit last month last year -->
+                <select name="date" value="<%= queryParams.date %>">
+                    <option value="0" <% if (!queryParams.date || queryParams.date == "0" ){ %> selected <% } %> >All</option>
+                    <option value="1"  <% if (queryParams.date && queryParams.date == "1" ){%>selected <% } %> >Last 24 hours</option>
+                    <option value="7" <% if (queryParams.date && queryParams.date == "7" ){%>selected <% } %>>Last 7 days</option>
+                    <option value="30" <% if (queryParams.date && queryParams.date == "30" ){%>selected <% } %>>Last 30 days</option>
+                    <option value="365" <% if (queryParams.date && queryParams.date == "365" ){%>selected <% } %>>Last 365 days</option>
+                </select>
+                <!-- username -->
+                <input type="text" name="userId" placeholder="User ID" <% if (queryParams.userId){%>value="<%=queryParams.userId %>"<% } %> />
+                <input type="number" name="limit" placeholder="Limit" max="9999" min="10" <% if (queryParams.limit){%>value="<%= queryParams.limit || "200" %>"<% } %> />
+                <select name="version">
+                    <option value="all" <% if (!queryParams.version || queryParams.version == "all" ){ %> selected <% } %> >All</option>
+                    <% for (let version of bsVersions) { %>
+                        <option value="<%= version.value %>" <% if (queryParams.version && queryParams.version == version.value ){ %> selected <% } %> ><%= version.name %></option>
+                    <% } %>
+                </select>    
+
+                <input type="submit" value="Search" />
+            </form>
+
+            <div class="content">
+                <div class="loading">
+                    <div>Loading...</div>
+                </div>
+                <ol id="crashes">
+                </ol>
             </div>
-            <ol id="crashes">
-            </ol>
         </div>
-    </div>
-</body>
-<script>
-    const ul = document.getElementById("crashes");
-    const addCrash = (crash) => {
-        const li = document.createElement("li");
-        const div = document.createElement("div");
-        const crashId = document.createElement("a");
-        crashId.classList.add("coloumn");
-        crashId.classList.add("crashId");
-        crashId.setAttribute("href", "/crashes/" + crash.crashId);
-        crashId.innerText = crash.crashId;
-        const date = document.createElement("div");
-        date.classList.add("coloumn");
-        date.classList.add("date");
-        date.innerText = new Date(new Date(crash.uploadDate) - (new Date()).getTimezoneOffset() * 60000).toISOString().
-            replace(/T/, ' ').      // replace T with a space
-            replace(/\..+/, '')     // delete the dot and everything after
-        const userId = document.createElement("a");
-        // Get old search params 
-        let searchParams = new URLSearchParams(window.location.search);
-        searchParams.set("userId", crash.userId);
-        userId.setAttribute("href", "/crashes?" + searchParams.toString());
-        userId.classList.add("coloumn");
-        userId.classList.add("userId");
-        userId.innerText = crash.userId;
-        
-        // Get game version
-        const gameVersionDiv = document.createElement(crash.gameVersion? "a":"div");
-        gameVersionDiv.classList.add("coloumn");
-        gameVersionDiv.classList.add("gameVersion");
-        
-        // If we have a game version, add a link to it
-        if (crash.gameVersion) {
+    </body>
+    <script>
+        const ul = document.getElementById("crashes");
+        const addCrash = (crash) => {
+            const li = document.createElement("li");
+            const div = document.createElement("div");
+            const crashId = document.createElement("a");
+            crashId.classList.add("coloumn");
+            crashId.classList.add("crashId");
+            crashId.setAttribute("href", "/crashes/" + crash.crashId);
+            crashId.innerText = crash.crashId;
+            const date = document.createElement("div");
+            date.classList.add("coloumn");
+            date.classList.add("date");
+            date.innerText = new Date(new Date(crash.uploadDate) - (new Date()).getTimezoneOffset() * 60000).toISOString().
+                replace(/T/, ' ').      // replace T with a space
+                replace(/\..+/, '')     // delete the dot and everything after
+            const userId = document.createElement("a");
+            // Get old search params 
             let searchParams = new URLSearchParams(window.location.search);
-            searchParams.set("version", crash.gameVersion);
-            gameVersionDiv.setAttribute("href", "/crashes?" + searchParams.toString());
-
-            // Remove the _ and the number to show in the ui
-            let regex = /(\_\d*)/g;
-            // Remove the _ and the number
-            gameVersionDiv.innerText = crash.gameVersion.replace(regex, "");
-        } else {
-            gameVersionDiv.innerText = "?";
-        }
-
-        div.appendChild(crashId);
-        div.appendChild(date);
-        div.appendChild(gameVersionDiv);
-        div.appendChild(userId);
-        li.appendChild(div);
-        ul.appendChild(li);
-    }
-    const fetchCrashes = async () => {
-        try {
-            ul.innerHTML = "";
-            let response = await fetch("/api/crashes?" + new URLSearchParams(window.location.search).toString());
-            if (!response.ok) {
-                console.log(response);
-                console.log(response.status);
-                if (response.status == 400) {
-                    let data = await response.json();
-                    document.querySelector(".loading").classList.remove("hidden");
-                    document.querySelector(".loading").classList.add("error");
-                    document.querySelector(".loading div").innerHTML = "Error: " + data.message;
-                    return;
-                }
-            }
-            let data = await response.json()
+            searchParams.set("userId", crash.userId);
+            userId.setAttribute("href", "/crashes?" + searchParams.toString());
+            userId.classList.add("coloumn");
+            userId.classList.add("userId");
+            userId.innerText = crash.userId;
             
-            data.forEach(crash => addCrash(crash));
+            // Get game version
+            const gameVersionDiv = document.createElement(crash.gameVersion? "a":"div");
+            gameVersionDiv.classList.add("coloumn");
+            gameVersionDiv.classList.add("gameVersion");
             
-            if (data.length == 0) {
-                document.querySelector(".loading div").innerHTML = "No crashes found";
+            // If we have a game version, add a link to it
+            if (crash.gameVersion) {
+                let searchParams = new URLSearchParams(window.location.search);
+                searchParams.set("version", crash.gameVersion);
+                gameVersionDiv.setAttribute("href", "/crashes?" + searchParams.toString());
+
+                // Remove the _ and the number to show in the ui
+                let regex = /(\_\d*)/g;
+                // Remove the _ and the number
+                gameVersionDiv.innerText = crash.gameVersion.replace(regex, "");
             } else {
-                document.querySelector(".loading").classList.add("hidden");
+                gameVersionDiv.innerText = "?";
             }
-            
-        } catch(err) {
-            debugger
-            console.log(JSON.stringify(err));
-            document.querySelector(".loading").classList.add("hidden");
-            console.error("Error: " + err);
+
+            div.appendChild(crashId);
+            div.appendChild(date);
+            div.appendChild(gameVersionDiv);
+            div.appendChild(userId);
+            li.appendChild(div);
+            ul.appendChild(li);
         }
-    }
-    fetchCrashes();
-    setInterval(fetchCrashes, 5 * 60 * 1000);
-</script>
+        const fetchCrashes = async () => {
+            try {
+                ul.innerHTML = "";
+                let response = await fetch("/api/crashes?" + new URLSearchParams(window.location.search).toString());
+                if (!response.ok) {
+                    console.log(response);
+                    console.log(response.status);
+                    if (response.status == 400) {
+                        let data = await response.json();
+                        document.querySelector(".loading").classList.remove("hidden");
+                        document.querySelector(".loading").classList.add("error");
+                        document.querySelector(".loading div").innerHTML = "Error: " + data.message;
+                        return;
+                    }
+                }
+                let data = await response.json()
+                
+                data.forEach(crash => addCrash(crash));
+                
+                if (data.length == 0) {
+                    document.querySelector(".loading div").innerHTML = "No crashes found";
+                } else {
+                    document.querySelector(".loading").classList.add("hidden");
+                }
+                
+            } catch(err) {
+                debugger
+                console.log(JSON.stringify(err));
+                document.querySelector(".loading").classList.add("hidden");
+                console.error("Error: " + err);
+            }
+        }
+        fetchCrashes();
+        setInterval(fetchCrashes, 5 * 60 * 1000);
+    </script>
 </html>
