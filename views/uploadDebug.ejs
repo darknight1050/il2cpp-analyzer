@@ -3,6 +3,7 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Poppins&family=Roboto+Mono&display=swap" rel="stylesheet">
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
         <style>
             html {
                 background-color: #0d1117;
@@ -10,25 +11,24 @@
             }
 
             body {
-                padding: 0;
-                margin: 0;
-                min-height: 100vh;
+                padding: 42vh 32px;
+                font-size: 14px;
+                text-align: center;
             }
 
             .main {
-                display: grid;
-                grid-template-rows: 44px 1fr;
-                height: 100%;
+                display: inline-block;
+                text-align: left;
+                background: #262a30;
+                padding: 16px;
+                width: 450px;
+                position: relative;
+                border-radius: 3px;
             }
 
-            .tab {
-                overflow: hidden;
-            }
-
-            .tab button {
+            button {
                 color: #ffa657;
                 background-color: #141b25;
-                float: left;
                 border: none;
                 border-radius: 3px;
                 outline: none;
@@ -37,86 +37,87 @@
                 transition: 0.3s;
             }
 
-            .tab button:hover {
+            button:hover {
                 background-color: #1f2a3a;
             }
 
-            .tab button.active {
+            button:disabled {
+                background-color: #363a3f;
+                cursor: default;
+            }
+
+            button.active {
                 background-color: #30363d;
             }
 
-            textarea {
+            #chooseButton {
+                float: left;
+            }
+
+            #uploadButton {
+                float: right;
+            }
+
+            input[type="file"] {
+                display: none;
+            }
+
+            #choose {
                 color: #ffa657;
-                background-color: #0d1117;
-                border-color: #30363d;
-                border-radius: 0px;
-                white-space: pre;
-                overflow: auto;
-                width: 100%;
-                resize: none;
-                font-family: "Roboto Mono", monospace;
-            }
-
-            textarea:focus {
-                outline-width: 0;
-            }
-
-            textarea::-webkit-scrollbar {
-                width: 18px;
-            }
-
-            textarea::-webkit-scrollbar-corner {
-                background: #161b22;
-            }
-
-            textarea::-webkit-scrollbar-track {
-                background: #161b22;
-            }
-
-            textarea::-webkit-scrollbar-thumb {
-                background-color: #30363d;
-                border: 3px solid #161b22;
-                border-radius: 16px;
-            }
-            .header {
-                display: flex;
-                flex-direction: row;
-            }
-
-            .info {
-                flex: 1;
-                text-align: right;
-                display: flex;
-                color: rgb(137, 206, 206);
-                align-items: center;
-                justify-content: end;
-                margin-right: 10px;
-            }
-            .info p {
-                padding-left: 10px;
-                text-align: left;
-                font-size: 0.6rem;
-            }
-            .info p span {
-                margin-top: -4px;
-                color: #ffa657;
-                font-size:1rem;
-            }
-
-            .info a {
-                color: #ffa657;
-                text-decoration: none;
+                display: inline-block;
+                padding: 11px 16px;
             }
         </style>
     </head>
     <body>
         <div class="main">
-                <form ref="uploadForm" id="uploadForm" action="/api/uploadDebug" method="post" encType="multipart/form-data">
-                        <input type="file" name="debug" />
-                        <input type="submit" value="Upload!" />
-                </form>
+            <button id="chooseButton" onclick="choose()">Choose</button>
+            <label id="choose">
+                No file selected
+            </label>
+            <button disabled id="uploadButton" onclick="upload()">Upload</button>
+            <input type="file" id="fileInput" onChange="fileChange()"/>
         </div>
     </body>
     <script>
+
+        const choose = () => {
+            let fileInput = document.getElementById("fileInput");
+            fileInput.click();
+        }
+
+        const fileChange = () => {
+            let fileInput = document.getElementById("fileInput");
+            let uploadButton = document.getElementById("uploadButton");
+            let choose = document.getElementById("choose");
+            uploadButton.disabled = fileInput.files.length == 0;
+            if(uploadButton.disabled) {
+                choose.innerText = "No file selected";
+            } else {
+                choose.innerText = fileInput.files[0].name;
+            }
+        }
+
+        const upload = () => {
+            let fileInput = document.getElementById("fileInput");
+        
+            if (fileInput.files.length === 0) {
+                alert("No file");
+                return;
+            }
+            let file = fileInput.files[0];
+        
+            let formData = new FormData();
+            formData.set("debugFile", file);
+        
+            axios.post("../api/uploadDebug", formData)
+            .then(res => {
+                alert("Uploaded: " + res.data.buildId);
+            })
+            .catch(err => {
+                alert(err.response.data.message);
+            })
+        }
+    
     </script>
 </html>

@@ -114,7 +114,7 @@ module.exports = (app) => {
     });
 
     app.post("/api/uploadDebug", async (req, res) => {
-        const file = req.files?.debug;
+        const file = req.files?.debugFile;
         if(file) {
             try {
                 const elf = readELF(file.data);
