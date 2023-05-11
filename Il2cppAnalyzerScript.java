@@ -9,7 +9,7 @@ import com.google.gson.stream.JsonWriter;
 import ghidra.app.script.GhidraScript;
 import ghidra.program.model.address.*;
 import ghidra.program.model.listing.*;
-import ghidra.app.util.bin.format.elf.GnuBuildIdSection;
+import ghidra.app.util.bin.format.elf.info.NoteGnuBuildId;
 
 public class Il2cppAnalyzerScript extends GhidraScript {
 	
@@ -19,17 +19,16 @@ public class Il2cppAnalyzerScript extends GhidraScript {
 	
 	@Override
 	public void run() throws Exception {
-
 		if (currentProgram == null) {
 			println("Must have an open program!");
 			return;
 		}
-		GnuBuildIdSection.GnuBuildIdValues buildID = GnuBuildIdSection.fromProgram(getCurrentProgram());
-		if(buildID == null || !buildID.isValid()) {
+		NoteGnuBuildId buildID = NoteGnuBuildId.fromProgram(getCurrentProgram());
+		if(buildID == null) {
 			println("BuildID not found!");
 			return;
 		}
-		String buildIDHex = bytesToHex(GnuBuildIdSection.fromProgram(getCurrentProgram()).getDescription());
+		String buildIDHex = bytesToHex(buildID.getHash());
 
 		Process p = Runtime.getRuntime().exec("c++filt");
 		

@@ -11,7 +11,8 @@ import ghidra.program.model.symbol.*;
 import ghidra.app.util.parser.*;
 
 public class Demangle extends GhidraScript {
-
+	
+	@SuppressWarnings("fallthrough")
 	@Override
 	public void run() throws Exception {
 
