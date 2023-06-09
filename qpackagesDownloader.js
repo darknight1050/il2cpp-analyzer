@@ -30,6 +30,10 @@ const readVersionsDir = (path) => {
 }
 
 const getDownloadedPackages = () => {
+    // Create versions directory if it doesn't exist
+    if (!fs.existsSync(versionsPath))
+        fs.mkdirSync(versionsPath);
+
     return readVersionsDir(versionsPath);
 }
 
