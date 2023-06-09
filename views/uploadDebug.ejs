@@ -11,9 +11,15 @@
             }
 
             body {
-                padding: 42vh 32px;
+                margin: 0;
                 font-size: 14px;
                 text-align: center;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding-top: 60px;
+                box-sizing: border-box;
             }
 
             .main {
@@ -67,6 +73,81 @@
                 display: inline-block;
                 padding: 11px 16px;
             }
+
+            .dropOverlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                display: none;
+                background-color: #141b259d;
+                border-radius: 3px;
+                transition: 0.3s;
+            }
+            .dropOverlay.active {
+                display: block;
+            }
+            .dropOverlay p {
+                color: #ffa657;
+                font-size: 18px;
+                margin: 0;
+                padding: 0;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+            }
+            .dropHint{
+                color: #ffa657;
+                font-size: 14px;
+                margin: 5px;
+                padding: 5px;
+            }
+
+            .uploadsList {
+                color: #ffa657;
+                font-size: 18px;
+                margin: 10px;
+                padding: 10px;
+                border-radius: 3px;
+                text-align: left;
+            }
+            .uploadsList ul {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+            .uploadsList ul li {
+                margin: 5px;
+                padding: 5px;
+                border-radius: 3px;
+               
+            }
+            .uploadsList h2 {
+                margin: 0;
+                padding: 0;
+                text-align: center;
+            }
+            .uploadingHint {
+                display: block;
+                position: fixed;
+                top: 0;
+                left: 0;
+                padding: 10px;
+                font-size: 18px;
+                margin: 0;
+                color: #ffa657;
+                opacity: 1;
+                transform:  translateY(-100%);
+                transition: 0.2s;
+                background-color: rgba(20, 27, 37, 0.678);
+            }
+            .uploadingHint.active {
+                display: block;
+                opacity: 1;
+                transform:  translateY(0%);
+            }
         </style>
     </head>
     <body>
@@ -76,14 +157,118 @@
                 No file selected
             </label>
             <button disabled id="uploadButton" onclick="upload()">Upload</button>
-            <input type="file" id="fileInput" onChange="fileChange()"/>
+            <input type="file" id="fileInput"  onChange="fileChange()" multiple/>
         </div>
+        <div class="dropHint">
+            <p>Or drop debug .so files here, multiple files at once are supported</p>
+        </div>
+        <div class="uploadsList">
+            <h2>Uploads</h2>
+            
+            <ul>
+            </ul>
+        </div>
+        <div class="dropOverlay">
+            <p>Drop .so file here</p>
+        </div>
+        <p class="uploadingHint">Uploading...</p>
     </body>
     <script>
+        
+        /**
+        * Logs the build id of the uploaded file
+        * @param {string} message
+        */
+        function Log(message, isError = false) {
+            let uploadsList = document.querySelector(".uploadsList ul");
+            let li = document.createElement("li");
+            if (isError) {
+                li.style.color = "#ff6b6b";
+            }
+            li.innerText = message;
+            uploadsList.appendChild(li);
+        }
+
+        /**
+        * Sends a file to the server
+        * @param {File} file
+        */
+        async function sendFile(file) {
+            if (!file) {
+                return;
+            }
+            // Check file extension
+            if (!file.name.endsWith(".so")) {
+                Log("Invalid file extension: " + file.name, true);
+                return;
+            }
+            
+            let formData = new FormData();
+            formData.set("debugFile", file);
+        
+            try {
+                let result = await axios.post("../api/uploadDebug", formData)
+                Log(`Uploaded: ${file.name} ${result.data.buildId}`);
+            } catch (err) {
+                if (err.response) {
+                    Log(err.response.data.message, true);
+                } else {
+                    Log(`Unknown error for ${file.name}`, true);
+                }
+            }
+        }
+
+
+        let uploadCount = 0;
+
+        /**
+        * Uploads multiple files
+        * @param {File[]} files
+        */
+        async function UploadFiles(files) {
+            if (files.length > 0) {
+                uploadCount += files.length;
+                if (uploadCount > 0) {
+                    UpdateUploadingCount();
+                    showUploading();
+
+                }
+            }
+
+            for (let file of files) {
+
+                await sendFile(file);
+                uploadCount--;
+                UpdateUploadingCount();
+            }
+
+            if (uploadCount <= 0) {
+                uploadCount = 0;
+                
+                hideUploading();
+                UpdateUploadingCount();
+            }
+
+        }
 
         const choose = () => {
             let fileInput = document.getElementById("fileInput");
             fileInput.click();
+        }
+
+        function showUploading() {
+            let uploadingHint = document.querySelector(".uploadingHint");
+            uploadingHint.classList.add("active");
+        }
+
+        function hideUploading() {
+            let uploadingHint = document.querySelector(".uploadingHint");
+            uploadingHint.classList.remove("active");
+        }
+
+        function UpdateUploadingCount() {
+            let uploadingHint = document.querySelector(".uploadingHint");
+            uploadingHint.innerText = `Uploading... (${uploadCount}) files left`;
         }
 
         const fileChange = () => {
@@ -94,30 +279,64 @@
             if(uploadButton.disabled) {
                 choose.innerText = "No file selected";
             } else {
-                choose.innerText = fileInput.files[0].name;
+                if (fileInput.files.length == 1) {
+                    choose.innerText = fileInput.files[0].name;
+                    return;
+                }
+                choose.innerText = fileInput.files.length + " files selected";
             }
         }
 
-        const upload = () => {
+        const upload = async () => {
+            /**
+            * @type {HTMLInputElement}
+            */
             let fileInput = document.getElementById("fileInput");
         
             if (fileInput.files.length === 0) {
                 alert("No file");
                 return;
             }
-            let file = fileInput.files[0];
-        
-            let formData = new FormData();
-            formData.set("debugFile", file);
-        
-            axios.post("../api/uploadDebug", formData)
-            .then(res => {
-                alert("Uploaded: " + res.data.buildId);
-            })
-            .catch(err => {
-                alert(err.response.data.message);
-            })
+
+            await UploadFiles(fileInput.files);
+            
+            hideUploading();
         }
+
+        let dragCounter = 0;
+
+        // Add drop listeners to body element
+        let dropOverlay = document.querySelector(".dropOverlay");
+        let body = document.getElementsByTagName("body")[0];
+        body.addEventListener("dragenter", (e) => {
+            e.preventDefault();
+            dragCounter++;
+            if (dragCounter > 1) {
+                dropOverlay.classList.add("active");
+            }
+        });
+        body.addEventListener("dragover", (e) => {
+            e.preventDefault();
+        });
+        body.addEventListener("dragleave", (e) => {
+            e.preventDefault();
+            dragCounter--;
+            if (dragCounter <= 0) {
+                dragCounter = 0;
+                dropOverlay.classList.remove("active");
+            }
+        });
+
+        body.addEventListener("drop", async (e) => {
+            e.preventDefault();
+
+            dropOverlay.classList.remove("active");
+            dragCounter = 0;
+
+            if (e.dataTransfer.files.length > 0) {
+                await UploadFiles(e.dataTransfer.files);
+            }
+        });
     
     </script>
 </html>
