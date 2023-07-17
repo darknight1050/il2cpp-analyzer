@@ -4,29 +4,27 @@ const mongoosastic = require('mongoosastic')
 const crashSchema = new mongoose.Schema(
     {
         _id: { type: String, required: true, alias: "crashId", es_indexed: true },
-        userId: { type: String, required: true, index: true, es_indexed: true, es_type: 'keyword'  },
+        userId: { type: String, required: true, index: true, es_indexed: true  },
         original: { type: String, required: true },
         uploadDate: { type: Date, required: true, es_indexed: true, es_type: 'date'  },
         stacktrace: { type: String, },
         
-        log: { type: String, es_indexed: true },
+        log: { type: String, es_indexed: true, es_type: 'text' },
         gameVersion: { type: String, es_indexed: true, es_type: 'keyword' },
         mods: {
             type: [{
                 _id: false,
-                name: { type: String, required: true },
-                version: { type: String, required: true  },
+                name: { type: String, required: true, es_type: 'keyword' },
+                version: { type: String, required: true, es_type: 'keyword'  },
             }],
             es_indexed: true,
             es_type: 'nested',
-            es_include_in_parent: true,
-            // es_select: 'name, version'
         },
 
         // Parsed fields 
-        backtrace: { type: String, es_indexed: true  },
+        backtrace: { type: String, es_indexed: true, es_type: 'text'   },
         stack: { type: String, es_indexed: false  },
-        header: { type: String, es_indexed: true  },
+        header: { type: String, es_indexed: true, es_type: 'text'   },
         registers: { type: String, es_indexed: false  },
     },
     { strict: false }

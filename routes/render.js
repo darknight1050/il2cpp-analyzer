@@ -31,6 +31,8 @@ module.exports = (app) => {
                     bsVersions.unshift({ name: ShortenGameVersion(version), value: version });
                 }
             }
+            // Sort by name
+            bsVersions = bsVersions.sort((a, b) => b.name.localeCompare(a.name));
         }
         
         res.render("crashes", {
