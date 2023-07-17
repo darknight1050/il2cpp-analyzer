@@ -204,4 +204,76 @@ const getBeatsaberVersionFromStacktrace = (stacktrace) => {
     }
 }
 
-module.exports = { getBuildIDs, analyzeBuildIDs, analyzeStacktrace, loadVersions, getBeatsaberVersionFromStacktrace, getBeatSaberVersions, readVersion };
+/**
+ * Split stacktrace into its components
+ * @param {string} stacktrace 
+ * @returns {AnalyzedStacktrace}
+ */
+const splitStacktrace = (stacktrace) => {
+    let result = {
+        header: undefined,
+        backtrace: undefined,
+        stack: undefined,
+        registers: undefined,
+    }
+
+    // replace all \r\n with \n if present
+    stacktrace = stacktrace.replace(/\r\n/g, "\n");
+
+    // Get positions of points of interest
+    const headerStart = stacktrace.indexOf("\nVersion '");
+    const headerEnd = stacktrace.indexOf("\n    x0", headerStart);
+    const backtracePos = stacktrace.indexOf("\n\nbacktrace:\n");
+    const stackPos = stacktrace.indexOf("\nstack:\n");
+
+    // Parse header
+    if (headerStart != -1) {
+        if (headerEnd != -1) {
+            // skip newline
+            result.header = stacktrace.substring(headerStart + 1, headerEnd);
+        }
+    }
+
+    // Parse registers
+    if (headerEnd != -1) {
+        if (backtracePos != -1) {
+            // skip newline and 4 spaces
+            result.registers = stacktrace.substring(headerEnd + 5, backtracePos);
+
+            // Remove indentation
+            result.registers = result.registers.replace(/    /g, "");
+        }
+    }
+
+    // Split stacktrace into its components 
+    if (backtracePos != -1) {
+        // If stack position is not found then backtrace is the last part of the stacktrace
+        if (stackPos != -1) {
+            // 13 = length of "\n\nbacktrace:\n"
+            result.backtrace = stacktrace.substring(backtracePos + 13, stackPos);
+        } else {
+            result.backtrace = stacktrace.substring(backtracePos + 13);
+        }
+
+        // Remove indentation
+        result.backtrace = result.backtrace.replace(/      /g, "");
+        
+    }
+    
+    if (stackPos != -1) {
+        result.stack = stacktrace.substring(stackPos + 8);
+    }
+
+    return result;
+}
+
+module.exports = { 
+    getBuildIDs, 
+    analyzeBuildIDs, 
+    analyzeStacktrace, 
+    loadVersions, 
+    getBeatsaberVersionFromStacktrace, 
+    getBeatSaberVersions, 
+    readVersion,
+    splitStacktrace
+ };

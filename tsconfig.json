@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "checkJs": true,
+        "allowJs": true,
+        "module": "commonjs",
+        "typeRoots": [
+            "./node_modules/@types",
+            "./types"
+        ],
+    },
+    "compileOnSave": false
+}

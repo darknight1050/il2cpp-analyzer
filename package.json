@@ -8,11 +8,14 @@
     "dev": "nodemon index.js",
     "dbindex": "node dbindex.js",
     "test": "jest",
-    "reanalyze": "node reanalyze.js"
+    "testwatch": "jest --watch",
+    "reanalyze": "node scripts/reanalyze.js",
+    "recreateIndex": "node scripts/recreateIndex.js"
   },
   "keywords": [],
   "author": "darknight1050",
   "dependencies": {
+    "@types/jest": "^29.5.3",
     "axios": "^0.26.0",
     "bn.js": "^5.2.1",
     "body-parser": "^1.19.0",

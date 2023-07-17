@@ -1,4 +1,4 @@
-const { analyzeStacktrace, getBeatsaberVersionFromStacktrace } = require("../analyzer"),
+const { analyzeStacktrace, getBeatsaberVersionFromStacktrace, splitStacktrace } = require("../analyzer"),
     mongoose = require("mongoose"),
     Crash = require("../dbmodels/crash");
 
@@ -75,7 +75,8 @@ const getCrashes = async (filter) => {
         SearchParams.query.bool.must.push({
             "query_string": {
                 "fields": [
-                    "stacktrace",
+                    "backtrace",
+                    "header",
                     "mods.*",
                     "log",
                 ],
@@ -132,15 +133,24 @@ const storeCrash = async (crash) => {
     // Try to get game version from stacktrace
     let gameVersion = getBeatsaberVersionFromStacktrace(crash.stacktrace);
 
+    const analyzedStacktrace = analyzeStacktrace(crash.stacktrace);
+
+    // Split stacktrace into components
+    const splitStack = splitStacktrace(analyzedStacktrace);
+
     new Crash({
         crashId: crashId,
         userId: crash.userId,
         original: crash.stacktrace,
-        stacktrace: analyzeStacktrace(crash.stacktrace),
+        stacktrace: analyzedStacktrace,
         log: crash.log,
         mods: crash.mods,
         gameVersion: gameVersion,
-        uploadDate: Date.now()
+        uploadDate: Date.now(),
+        stack: splitStack.stack,
+        header: splitStack.header,
+        backtrace: splitStack.backtrace,
+        registers: splitStack.registers,
     }).save();
     return crashId;
 }

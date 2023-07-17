@@ -7,13 +7,27 @@ const crashSchema = new mongoose.Schema(
         userId: { type: String, required: true, index: true, es_indexed: true, es_type: 'keyword'  },
         original: { type: String, required: true },
         uploadDate: { type: Date, required: true, es_indexed: true, es_type: 'date'  },
-        stacktrace: { type: String,  es_indexed: true  },
+        stacktrace: { type: String, },
+        
         log: { type: String, es_indexed: true },
         gameVersion: { type: String, es_indexed: true, es_type: 'keyword' },
-        mods: [{
-            name: { type: String, required: true, es_indexed: true },
-            version: { type: String, required: true, es_indexed: true  },
-        }],
+        mods: {
+            type: [{
+                _id: false,
+                name: { type: String, required: true },
+                version: { type: String, required: true  },
+            }],
+            es_indexed: true,
+            es_type: 'nested',
+            es_include_in_parent: true,
+            // es_select: 'name, version'
+        },
+
+        // Parsed fields 
+        backtrace: { type: String, es_indexed: true  },
+        stack: { type: String, es_indexed: false  },
+        header: { type: String, es_indexed: true  },
+        registers: { type: String, es_indexed: false  },
     },
     { strict: false }
 );
