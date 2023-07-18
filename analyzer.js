@@ -250,6 +250,9 @@ const splitStacktrace = (stacktrace) => {
             // If we are here then it means that the stacktrace does not contain a backtrace
             if (failedToUnwindPos != -1) {
                 result.registers = stacktrace.substring(headerEnd + 5, failedToUnwindPos);
+            } else if (stackPos == -1) {
+                // If we did not find anything after the header then we just get everything after the header
+                result.registers = stacktrace.substring(headerEnd + 5);
             }
         }
     }
@@ -284,6 +287,18 @@ const splitStacktrace = (stacktrace) => {
     }
     if (!result.registers) {
         throw new Error("Registers not found, something is wrong with the stacktrace");
+    }
+
+    // Validate that the stacktrace is valid
+    if (result.registers.length > 800) {
+        throw new Error("Something is wrong with the stacktrace, length of registers is too long");
+    }
+    // Validate that the header is valid
+    if (result.header ) {
+        const pos = stacktrace.indexOf("\nVersion '")
+        if (pos == -1) {
+            throw new Error("Something is wrong with the stacktrace, header is invalid");
+        }
     }
 
     return result;

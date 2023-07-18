@@ -65,5 +65,15 @@ test('Splitting stacktraces', async () => {
             expect(analyzed.registers).toContain("pc");
             expect(analyzed.registers).not.toContain("/lib/arm64/");
         }
+        // Stacktrace with no backtrace
+        {
+            let file = await fs.readFile(__dirname + '/stacktraces/stacktrace5.txt');
+            const analyzed = splitStacktrace(file.toString());
+            expect(analyzed.stack).toBe(undefined);
+            expect(analyzed.backtrace).toBe(undefined);
+            expect(analyzed.header).toContain("Version '");
+            expect(analyzed.registers).toContain("pc");
+            expect(analyzed.registers).not.toContain("/lib/arm64/");
+        }
     }
 });

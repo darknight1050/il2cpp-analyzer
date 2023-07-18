@@ -1,0 +1,19 @@
+*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+Version '2019.4.28f1 (1381962e9d08)', Build type 'Release', Scripting Backend 'il2cpp', CPU 'arm64-v8a'
+Build fingerprint: 'oculus/hollywood/hollywood:12/SQ3A.220605.009.A1/50542050054700150:user/release-keys'
+Revision: '0'
+ABI: 'arm64'
+Timestamp: 2023-07-18 19:10:55+0200
+pid: 19463, tid: 19575, name: UnityMain  >>> com.beatgames.beatsaber <<<
+uid: 10185
+signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x0
+Cause: null pointer dereference
+    x0  000000753de50da0  x1  000000753de50778  x2  0000000000000001  x3  b4000072fad7cf60
+    x4  000000753de50da0  x5  0000007551cf53e8  x6  fefeff04d5ec9b0a  x7  7f7f7f7fffffff7f
+    x8  0000000000000000  x9  fc614824fe8a8044  x10 0000000000004c77  x11 0000000000004c77
+    x12 0000000000000000  x13 0000000000000001  x14 ffffffffffffffff  x15 000000765c914ae0
+    x16 00000075163bec48  x17 000000765c970dc0  x18 00000075028d5b10  x19 000000753de50778
+    x20 000000753de50898  x21 000000753de55cc0  x22 0000000000000001  x23 000000753de50da0
+    x24 0000000000000000  x25 0000000000000003  x26 0000000000000001  x27 0000000000000048
+    x28 0000000000000001  x29 000000753de50750
+    sp  000000753de50750  lr  0000007551cf8b50  pc  0000000000000000
