@@ -103,3 +103,10 @@ yarn reanalyze
 ```bash
 yarn dbindex
 ```
+
+### Import data
+Put the data in `docker/dbinit` folder and run:
+(analyzer.crashes.json is the file with the data)
+```bash
+mongoimport --uri "mongodb://root:root@127.0.0.1:27027/analyzer?ssl=false&authSource=admin" --collection crashes --type json --file /docker-entrypoint-initdb.d/analyzer.crashes.json 
+```

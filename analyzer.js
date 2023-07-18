@@ -225,6 +225,8 @@ const splitStacktrace = (stacktrace) => {
     const headerEnd = stacktrace.indexOf("\n    x0", headerStart);
     const backtracePos = stacktrace.indexOf("\n\nbacktrace:\n");
     const stackPos = stacktrace.indexOf("\nstack:\n");
+    // Appears in the stacktrace if we fail to unwind the backtrace (usually when we have BUS_ADRALN)
+    const failedToUnwindPos = stacktrace.indexOf("\nFailed to unwind\n");
 
     // Parse header
     if (headerStart != -1) {
@@ -242,6 +244,13 @@ const splitStacktrace = (stacktrace) => {
 
             // Remove indentation
             result.registers = result.registers.replace(/    /g, "");
+        }
+        // The stacktrace does not contain a backtrace, so the registers end with failed to unwind
+        else {
+            // If we are here then it means that the stacktrace does not contain a backtrace
+            if (failedToUnwindPos != -1) {
+                result.registers = stacktrace.substring(headerEnd + 5, failedToUnwindPos);
+            }
         }
     }
 
@@ -262,6 +271,19 @@ const splitStacktrace = (stacktrace) => {
     
     if (stackPos != -1) {
         result.stack = stacktrace.substring(stackPos + 8);
+    } else if (failedToUnwindPos != -1) {
+        // If the stack is not here then it means that the stacktrace
+        // does not contain a backtrace and we just get everything after failed to unwind
+
+        // 18 = length of "\nFailed to unwind\n"
+        result.stack = stacktrace.substring(failedToUnwindPos + 18);
+    }
+
+    if (!result.header) {
+        throw new Error("Header not found, something is wrong with the stacktrace");
+    }
+    if (!result.registers) {
+        throw new Error("Registers not found, something is wrong with the stacktrace");
     }
 
     return result;

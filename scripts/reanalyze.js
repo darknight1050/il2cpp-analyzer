@@ -35,15 +35,18 @@ async function analyze() {
 
                 // Split the stacktrace
                 if (doc.stacktrace) {
-                    const splitStack = splitStacktrace(doc.stacktrace);
-                    if (splitStack && splitStack.header && splitStack.backtrace && splitStack.registers) {
+                    try {
+                        const splitStack = splitStacktrace(doc.stacktrace);
+                        
                         doc.stack = splitStack.stack;
                         doc.header = splitStack.header;
                         doc.backtrace = splitStack.backtrace;
                         doc.registers = splitStack.registers;
                         changed = true;
-                    } else {
+                    
+                    } catch (e) {
                         console.error("Failed to split stacktrace for crash " + doc._id + "!");
+                        console.error(e);
                     }
                 }
 

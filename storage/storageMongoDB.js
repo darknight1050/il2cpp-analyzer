@@ -135,8 +135,22 @@ const storeCrash = async (crash) => {
 
     const analyzedStacktrace = analyzeStacktrace(crash.stacktrace);
 
-    // Split stacktrace into components
-    const splitStack = splitStacktrace(analyzedStacktrace);
+    /**
+     * @type {AnalyzedStacktrace}
+     */
+    let splitStack = {
+        backtrace: undefined,
+        header: undefined,
+        stack: undefined,
+        registers: undefined,
+    }
+
+    try {
+        splitStack = splitStacktrace(analyzedStacktrace);
+    } catch (e) {
+        console.error("Failed to split stacktrace for crash " + crashId + "!");
+        console.error(e);
+    }
 
     new Crash({
         crashId: crashId,

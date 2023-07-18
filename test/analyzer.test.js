@@ -29,7 +29,6 @@ test('Splitting stacktraces', async () => {
         {
             let file = await fs.readFile(__dirname + '/stacktraces/stacktrace1.txt');
             const analyzed = splitStacktrace(file.toString());
-            console.log(analyzed);
             expect(analyzed.stack).toBe(undefined);
             expect(analyzed.backtrace).toContain("prop_area::find_property");
             expect(analyzed.header).toContain("Version '");
@@ -49,9 +48,19 @@ test('Splitting stacktraces', async () => {
         {
             let file = await fs.readFile(__dirname + '/stacktraces/stacktrace3.txt');
             const analyzed = splitStacktrace(file.toString());
-
             expect(analyzed.stack).not.toBe(undefined);
             expect(analyzed.backtrace).toContain("Hook_LivenessState_TraverseGCDescriptor");
+            expect(analyzed.header).toContain("Version '");
+            expect(analyzed.registers).toContain("pc");
+            expect(analyzed.registers).not.toContain("/lib/arm64/");
+        }
+
+        // Stacktrace with no backtrace
+        {
+            let file = await fs.readFile(__dirname + '/stacktraces/stacktrace4.txt');
+            const analyzed = splitStacktrace(file.toString());
+            expect(analyzed.stack).not.toBe(undefined);
+            expect(analyzed.backtrace).toBe(undefined);
             expect(analyzed.header).toContain("Version '");
             expect(analyzed.registers).toContain("pc");
             expect(analyzed.registers).not.toContain("/lib/arm64/");
