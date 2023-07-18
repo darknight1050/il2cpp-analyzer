@@ -204,4 +204,98 @@ const getBeatsaberVersionFromStacktrace = (stacktrace) => {
     }
 }
 
-module.exports = { getBuildIDs, analyzeBuildIDs, analyzeStacktrace, loadVersions, getBeatsaberVersionFromStacktrace, getBeatSaberVersions, readVersion };
+/**
+ * Split stacktrace into its components
+ * @param {string} stacktrace 
+ * @returns {AnalyzedStacktrace}
+ */
+const splitStacktrace = (stacktrace) => {
+    let result = {
+        header: undefined,
+        backtrace: undefined,
+        stack: undefined,
+        registers: undefined,
+    }
+
+    // replace all \r\n with \n if present
+    stacktrace = stacktrace.replace(/\r\n/g, "\n");
+
+    // Get positions of points of interest
+    const headerStart = stacktrace.indexOf("\nVersion '");
+    const headerEnd = stacktrace.indexOf("\n    x0", headerStart);
+    const backtracePos = stacktrace.indexOf("\n\nbacktrace:\n");
+    const stackPos = stacktrace.indexOf("\nstack:\n");
+    // Appears in the stacktrace if we fail to unwind the backtrace (usually when we have BUS_ADRALN)
+    const failedToUnwindPos = stacktrace.indexOf("\nFailed to unwind\n");
+
+    // Parse header
+    if (headerStart != -1) {
+        if (headerEnd != -1) {
+            // skip newline
+            result.header = stacktrace.substring(headerStart + 1, headerEnd);
+        }
+    }
+
+    // Parse registers
+    if (headerEnd != -1) {
+        if (backtracePos != -1) {
+            // skip newline and 4 spaces
+            result.registers = stacktrace.substring(headerEnd + 5, backtracePos);
+
+            // Remove indentation
+            result.registers = result.registers.replace(/    /g, "");
+        }
+        // The stacktrace does not contain a backtrace, so the registers end with failed to unwind
+        else {
+            // If we are here then it means that the stacktrace does not contain a backtrace
+            if (failedToUnwindPos != -1) {
+                result.registers = stacktrace.substring(headerEnd + 5, failedToUnwindPos);
+            }
+        }
+    }
+
+    // Split stacktrace into its components 
+    if (backtracePos != -1) {
+        // If stack position is not found then backtrace is the last part of the stacktrace
+        if (stackPos != -1) {
+            // 13 = length of "\n\nbacktrace:\n"
+            result.backtrace = stacktrace.substring(backtracePos + 13, stackPos);
+        } else {
+            result.backtrace = stacktrace.substring(backtracePos + 13);
+        }
+
+        // Remove indentation
+        result.backtrace = result.backtrace.replace(/      /g, "");
+        
+    }
+    
+    if (stackPos != -1) {
+        result.stack = stacktrace.substring(stackPos + 8);
+    } else if (failedToUnwindPos != -1) {
+        // If the stack is not here then it means that the stacktrace
+        // does not contain a backtrace and we just get everything after failed to unwind
+
+        // 18 = length of "\nFailed to unwind\n"
+        result.stack = stacktrace.substring(failedToUnwindPos + 18);
+    }
+
+    if (!result.header) {
+        throw new Error("Header not found, something is wrong with the stacktrace");
+    }
+    if (!result.registers) {
+        throw new Error("Registers not found, something is wrong with the stacktrace");
+    }
+
+    return result;
+}
+
+module.exports = { 
+    getBuildIDs, 
+    analyzeBuildIDs, 
+    analyzeStacktrace, 
+    loadVersions, 
+    getBeatsaberVersionFromStacktrace, 
+    getBeatSaberVersions, 
+    readVersion,
+    splitStacktrace
+ };

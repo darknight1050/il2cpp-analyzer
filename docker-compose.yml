@@ -6,7 +6,7 @@ services:
     environment:
       - xpack.security.enabled=false
       - discovery.type=single-node
-      - "ES_JAVA_OPTS=-Xms3g -Xmx3g"
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
     ulimits:
       memlock:
         soft: -1
@@ -49,9 +49,23 @@ services:
       - ME_CONFIG_MONGODB_SERVER=mongo    
       - ME_CONFIG_MONGODB_PORT=27027
 
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.4.0
+    restart: unless-stopped
+    volumes:
+      - kibana-data:/usr/share/kibana/config 
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch
+
 volumes:
   elasticsearch-data:
     driver: local
   mongo-data:
     driver: local
+  kibana-data:
+    
   

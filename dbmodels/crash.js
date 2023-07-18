@@ -4,16 +4,29 @@ const mongoosastic = require('mongoosastic')
 const crashSchema = new mongoose.Schema(
     {
         _id: { type: String, required: true, alias: "crashId", es_indexed: true },
-        userId: { type: String, required: true, index: true, es_indexed: true, es_type: 'keyword'  },
+        userId: { type: String, required: true, index: true, es_indexed: true  },
         original: { type: String, required: true },
         uploadDate: { type: Date, required: true, es_indexed: true, es_type: 'date'  },
-        stacktrace: { type: String,  es_indexed: true  },
-        log: { type: String, es_indexed: true },
+        stacktrace: { type: String, },
+        
+        log: { type: String, es_indexed: true, es_type: 'text' },
         gameVersion: { type: String, es_indexed: true, es_type: 'keyword' },
-        mods: [{
-            name: { type: String, required: true, es_indexed: true },
-            version: { type: String, required: true, es_indexed: true  },
-        }],
+        mods: {
+            type: [{
+                _id: false,
+                name: { type: String, required: true, es_type: 'keyword' },
+                version: { type: String, required: true, es_type: 'keyword'  },
+            }],
+            es_indexed: true,
+            es_type: 'nested',
+        },
+
+        // Parsed fields 
+        backtrace: { type: String, es_indexed: true, es_type: 'text'   },
+        header: { type: String, es_indexed: true, es_type: 'text'   },
+        // We don't use these fields for searching and parsing them is fast enough so we won't save them for now
+        // stack: { type: String, es_indexed: false  },
+        // registers: { type: String, es_indexed: false  },
     },
     { strict: false }
 );

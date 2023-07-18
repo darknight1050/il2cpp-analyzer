@@ -1,4 +1,4 @@
-const { analyzeStacktrace, getBeatsaberVersionFromStacktrace } = require("../analyzer"),
+const { analyzeStacktrace, getBeatsaberVersionFromStacktrace, splitStacktrace } = require("../analyzer"),
     mongoose = require("mongoose"),
     Crash = require("../dbmodels/crash");
 
@@ -75,7 +75,8 @@ const getCrashes = async (filter) => {
         SearchParams.query.bool.must.push({
             "query_string": {
                 "fields": [
-                    "stacktrace",
+                    "backtrace",
+                    "header",
                     "mods.*",
                     "log",
                 ],
@@ -132,15 +133,39 @@ const storeCrash = async (crash) => {
     // Try to get game version from stacktrace
     let gameVersion = getBeatsaberVersionFromStacktrace(crash.stacktrace);
 
+    const analyzedStacktrace = analyzeStacktrace(crash.stacktrace);
+
+    /**
+     * @type {AnalyzedStacktrace}
+     */
+    let splitStack = {
+        backtrace: undefined,
+        header: undefined,
+        stack: undefined,
+        registers: undefined,
+    }
+
+    try {
+        splitStack = splitStacktrace(analyzedStacktrace);
+    } catch (e) {
+        console.error("Failed to split stacktrace for crash " + crashId + "!");
+        console.error(e);
+    }
+
     new Crash({
         crashId: crashId,
         userId: crash.userId,
         original: crash.stacktrace,
-        stacktrace: analyzeStacktrace(crash.stacktrace),
+        stacktrace: analyzedStacktrace,
         log: crash.log,
         mods: crash.mods,
         gameVersion: gameVersion,
-        uploadDate: Date.now()
+        uploadDate: Date.now(),
+        header: splitStack.header,
+        backtrace: splitStack.backtrace,
+        // Don't save the stack and registers for now
+        // stack: splitStack.stack,
+        // registers: splitStack.registers,
     }).save();
     return crashId;
 }

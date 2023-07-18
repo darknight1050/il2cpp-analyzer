@@ -133,3 +133,4 @@ docker/dbinit/*
 !docker/dbinit/.gitkeep
 versions/qpackages
 versions/uploaded
+mongo-volume/
