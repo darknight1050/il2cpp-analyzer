@@ -23,9 +23,10 @@ const crashSchema = new mongoose.Schema(
 
         // Parsed fields 
         backtrace: { type: String, es_indexed: true, es_type: 'text'   },
-        stack: { type: String, es_indexed: false  },
         header: { type: String, es_indexed: true, es_type: 'text'   },
-        registers: { type: String, es_indexed: false  },
+        // We don't use these fields for searching and parsing them is fast enough so we won't save them for now
+        // stack: { type: String, es_indexed: false  },
+        // registers: { type: String, es_indexed: false  },
     },
     { strict: false }
 );

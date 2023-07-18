@@ -38,10 +38,11 @@ async function analyze() {
                     try {
                         const splitStack = splitStacktrace(doc.stacktrace);
                         
-                        doc.stack = splitStack.stack;
                         doc.header = splitStack.header;
                         doc.backtrace = splitStack.backtrace;
-                        doc.registers = splitStack.registers;
+                        // Don't save the stack and registers for now
+                        // doc.stack = splitStack.stack;
+                        // doc.registers = splitStack.registers;
                         changed = true;
                     
                     } catch (e) {

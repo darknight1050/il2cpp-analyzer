@@ -161,10 +161,11 @@ const storeCrash = async (crash) => {
         mods: crash.mods,
         gameVersion: gameVersion,
         uploadDate: Date.now(),
-        stack: splitStack.stack,
         header: splitStack.header,
         backtrace: splitStack.backtrace,
-        registers: splitStack.registers,
+        // Don't save the stack and registers for now
+        // stack: splitStack.stack,
+        // registers: splitStack.registers,
     }).save();
     return crashId;
 }
