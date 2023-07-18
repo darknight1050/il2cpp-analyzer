@@ -8,7 +8,7 @@ async function recreateIndex() {
     // Load the versions of older crashes
     // await loadVersions();
     mongoose.connect(process.env.MONGODB_URI, async () => {
-        await sync();
+        // await sync();
         crash.esTruncate();
         mongoose.disconnect();
     });
