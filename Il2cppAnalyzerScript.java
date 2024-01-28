@@ -28,9 +28,9 @@ public class Il2cppAnalyzerScript extends GhidraScript {
 			println("BuildID not found!");
 			return;
 		}
-		String buildIDHex = bytesToHex(buildID.getHash());
-
-		Process p = Runtime.getRuntime().exec("c++filt");
+		String buildIDHex = bytesToHex(buildID.getDescription());
+		//https://github.com/nico/demumble/
+		Process p = Runtime.getRuntime().exec("demumble -u");
 		
         demangleWriter = new PrintWriter(p.getOutputStream());
 		is = p.getInputStream();
