@@ -65,6 +65,7 @@ const readVersion = async (path) => {
     } catch (e) {
         console.log("Error loading " + name + ": " + e);
     }
+    buffer = null;
     gc();
 };
 
