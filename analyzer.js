@@ -210,6 +210,16 @@ const analyzeStacktrace = (stacktrace) => {
 const getBeatSaberVersions = () => {
     return beatSaberVersions;
 };
+
+const getBeatsaberVersionFromBuildId = (buildId) => {
+    for (const [version, buildID] of Object.entries(beatSaberVersions)) {
+        if (buildID == buildId) {
+            return version;
+        }
+    }
+    return undefined;
+};
+
 // TODO: Replace with something generic
 const getBeatsaberVersionFromStacktrace = (stacktrace) => {
     // Grab build ids
@@ -226,6 +236,7 @@ const getBeatsaberVersionFromStacktrace = (stacktrace) => {
             return version;
         }
     }
+    return undefined;
 };
 
 /**

@@ -130,9 +130,11 @@ const getCrash = async (crashId, includeOriginal = false) => {
 
 const storeCrash = async (crash) => {
     const crashId = await getAvailableID();
-    // Try to get game version from stacktrace
-    let gameVersion = getBeatsaberVersionFromStacktrace(crash.stacktrace);
-
+    let gameVersion = getBeatsaberVersionFromBuildId(crash.libIl2CppBuildID);
+    if (gameVersion === undefined) {
+        // Try to get game version from stacktrace
+        gameVersion = getBeatsaberVersionFromStacktrace(crash.stacktrace);
+    }
     const analyzedStacktrace = analyzeStacktrace(crash.stacktrace);
 
     /**
