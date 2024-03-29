@@ -10,6 +10,7 @@ const crashSchema = new mongoose.Schema(
             es_indexed: true,
         },
         userId: { type: String, required: true, index: true, es_indexed: true },
+        libIl2CppBuildID: { type: String, required: false },
         original: { type: String, required: true },
         uploadDate: {
             type: Date,
@@ -18,7 +19,6 @@ const crashSchema = new mongoose.Schema(
             es_type: "date",
         },
         stacktrace: { type: String },
-
         log: { type: String, es_indexed: true, es_type: "text" },
         gameVersion: { type: String, es_indexed: true, es_type: "keyword" },
         mods: {
@@ -36,7 +36,6 @@ const crashSchema = new mongoose.Schema(
             es_indexed: true,
             es_type: "nested",
         },
-
         // Parsed fields
         backtrace: { type: String, es_indexed: true, es_type: "text" },
         header: { type: String, es_indexed: true, es_type: "text" },

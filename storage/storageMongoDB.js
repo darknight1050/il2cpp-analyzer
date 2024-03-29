@@ -1,5 +1,6 @@
 const {
         analyzeStacktrace,
+        getBeatsaberVersionFromBuildId,
         getBeatsaberVersionFromStacktrace,
         splitStacktrace,
     } = require("../analyzer"),
@@ -155,6 +156,7 @@ const storeCrash = async (crash) => {
 
     new Crash({
         crashId: crashId,
+        libIl2CppBuildID: crash.libIl2CppBuildID,
         userId: crash.userId,
         original: crash.stacktrace,
         stacktrace: analyzedStacktrace,

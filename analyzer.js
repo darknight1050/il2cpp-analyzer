@@ -360,6 +360,7 @@ module.exports = {
     analyzeBuildIDs,
     analyzeStacktrace,
     loadVersions,
+    getBeatsaberVersionFromBuildId,
     getBeatsaberVersionFromStacktrace,
     getBeatSaberVersions,
     readVersion,
