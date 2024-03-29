@@ -1,8 +1,11 @@
 <html>
     <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Poppins&family=Roboto+Mono&display=swap" rel="stylesheet">
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Poppins&family=Roboto+Mono&display=swap"
+            rel="stylesheet"
+        />
         <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
         <style>
             html {
@@ -98,7 +101,7 @@
                 left: 50%;
                 transform: translate(-50%, -50%);
             }
-            .dropHint{
+            .dropHint {
                 color: #ffa657;
                 font-size: 14px;
                 margin: 5px;
@@ -122,7 +125,6 @@
                 margin: 5px;
                 padding: 5px;
                 border-radius: 3px;
-               
             }
             .uploadsList h2 {
                 margin: 0;
@@ -139,34 +141,41 @@
                 margin: 0;
                 color: #ffa657;
                 opacity: 1;
-                transform:  translateY(-100%);
+                transform: translateY(-100%);
                 transition: 0.2s;
                 background-color: rgba(20, 27, 37, 0.678);
             }
             .uploadingHint.active {
                 display: block;
                 opacity: 1;
-                transform:  translateY(0%);
+                transform: translateY(0%);
             }
         </style>
     </head>
     <body>
         <div class="main">
             <button id="chooseButton" onclick="choose()">Choose</button>
-            <label id="choose">
-                No file selected
-            </label>
-            <button disabled id="uploadButton" onclick="upload()">Upload</button>
-            <input type="file" id="fileInput"  onChange="fileChange()" multiple/>
+            <label id="choose"> No file selected </label>
+            <button disabled id="uploadButton" onclick="upload()">
+                Upload
+            </button>
+            <input
+                type="file"
+                id="fileInput"
+                onChange="fileChange()"
+                multiple
+            />
         </div>
         <div class="dropHint">
-            <p>Or drop debug .so files here, multiple files at once are supported</p>
+            <p>
+                Or drop debug .so files here, multiple files at once are
+                supported
+            </p>
         </div>
         <div class="uploadsList">
             <h2>Uploads</h2>
-            
-            <ul>
-            </ul>
+
+            <ul></ul>
         </div>
         <div class="dropOverlay">
             <p>Drop .so file here</p>
@@ -174,11 +183,10 @@
         <p class="uploadingHint">Uploading...</p>
     </body>
     <script>
-        
         /**
-        * Logs the build id of the uploaded file
-        * @param {string} message
-        */
+         * Logs the build id of the uploaded file
+         * @param {string} message
+         */
         function Log(message, isError = false) {
             let uploadsList = document.querySelector(".uploadsList ul");
             let li = document.createElement("li");
@@ -190,9 +198,9 @@
         }
 
         /**
-        * Sends a file to the server
-        * @param {File} file
-        */
+         * Sends a file to the server
+         * @param {File} file
+         */
         async function sendFile(file) {
             if (!file) {
                 return;
@@ -202,12 +210,12 @@
                 Log("Invalid file extension: " + file.name, true);
                 return;
             }
-            
+
             let formData = new FormData();
             formData.set("debugFile", file);
-        
+
             try {
-                let result = await axios.post("../api/uploadDebug", formData)
+                let result = await axios.post("../api/uploadDebug", formData);
                 Log(`Uploaded: ${file.name} ${result.data.buildId}`);
             } catch (err) {
                 if (err.response) {
@@ -218,25 +226,22 @@
             }
         }
 
-
         let uploadCount = 0;
 
         /**
-        * Uploads multiple files
-        * @param {File[]} files
-        */
+         * Uploads multiple files
+         * @param {File[]} files
+         */
         async function UploadFiles(files) {
             if (files.length > 0) {
                 uploadCount += files.length;
                 if (uploadCount > 0) {
                     UpdateUploadingCount();
                     showUploading();
-
                 }
             }
 
             for (let file of files) {
-
                 await sendFile(file);
                 uploadCount--;
                 UpdateUploadingCount();
@@ -244,17 +249,16 @@
 
             if (uploadCount <= 0) {
                 uploadCount = 0;
-                
+
                 hideUploading();
                 UpdateUploadingCount();
             }
-
         }
 
         const choose = () => {
             let fileInput = document.getElementById("fileInput");
             fileInput.click();
-        }
+        };
 
         function showUploading() {
             let uploadingHint = document.querySelector(".uploadingHint");
@@ -276,7 +280,7 @@
             let uploadButton = document.getElementById("uploadButton");
             let choose = document.getElementById("choose");
             uploadButton.disabled = fileInput.files.length == 0;
-            if(uploadButton.disabled) {
+            if (uploadButton.disabled) {
                 choose.innerText = "No file selected";
             } else {
                 if (fileInput.files.length == 1) {
@@ -285,23 +289,23 @@
                 }
                 choose.innerText = fileInput.files.length + " files selected";
             }
-        }
+        };
 
         const upload = async () => {
             /**
-            * @type {HTMLInputElement}
-            */
+             * @type {HTMLInputElement}
+             */
             let fileInput = document.getElementById("fileInput");
-        
+
             if (fileInput.files.length === 0) {
                 alert("No file");
                 return;
             }
 
             await UploadFiles(fileInput.files);
-            
+
             hideUploading();
-        }
+        };
 
         let dragCounter = 0;
 
@@ -337,6 +341,5 @@
                 await UploadFiles(e.dataTransfer.files);
             }
         });
-    
     </script>
 </html>

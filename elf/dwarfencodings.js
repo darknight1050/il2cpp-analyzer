@@ -1,5 +1,4 @@
 DWARFEncodings = {
-
     DW_LNS_copy: 1,
     DW_LNS_advance_pc: 2,
     DW_LNS_advance_line: 3,
@@ -12,12 +11,12 @@ DWARFEncodings = {
     DW_LNS_set_prologue_end: 10,
     DW_LNS_set_epilogue_begin: 11,
     DW_LNS_set_isa: 12,
-    
+
     DW_LNE_end_sequence: 1,
     DW_LNE_set_address: 2,
     DW_LNE_define_file: 3,
     DW_LNE_set_discriminator: 4,
-    
+
     DW_TAG_array_type: 0x01,
     DW_TAG_class_type: 0x02,
     DW_TAG_entry_point: 0x03,
@@ -96,7 +95,7 @@ DWARFEncodings = {
     DW_AT_call_column: 0x57,
     DW_AT_call_file: 0x58,
     DW_AT_call_line: 0x59,
-    
+
     DW_FORM_addr: 0x01,
     DW_FORM_block2: 0x03,
     DW_FORM_block4: 0x04,
@@ -122,145 +121,134 @@ DWARFEncodings = {
     DW_FORM_exprloc: 0x18,
     DW_FORM_flag_present: 0x19,
     DW_FORM_ref_sig8: 0x20,
-
 };
 
 const getDWARFEncodingName = (type, encoding) => {
-    const entry = Object.entries(DWARFEncodings).find(entry => entry[0].startsWith(type) && entry[1] == encoding);
-    if(entry) {
+    const entry = Object.entries(DWARFEncodings).find(
+        (entry) => entry[0].startsWith(type) && entry[1] == encoding
+    );
+    if (entry) {
         return entry[0];
     }
     return encoding.toString(16);
-}
+};
 
 const isBlock = (form) => {
-    return form == DWARFEncodings.DW_FORM_block 
-    || form == DWARFEncodings.DW_FORM_block1 
-    || form == DWARFEncodings.DW_FORM_block2  
-    || form == DWARFEncodings.DW_FORM_block4 
-    || form == DWARFEncodings.DW_FORM_block8;
-}
+    return (
+        form == DWARFEncodings.DW_FORM_block ||
+        form == DWARFEncodings.DW_FORM_block1 ||
+        form == DWARFEncodings.DW_FORM_block2 ||
+        form == DWARFEncodings.DW_FORM_block4 ||
+        form == DWARFEncodings.DW_FORM_block8
+    );
+};
 
 const isConstant = (form) => {
-    return form == DWARFEncodings.DW_FORM_data1
-    || form == DWARFEncodings.DW_FORM_data2
-    || form == DWARFEncodings.DW_FORM_data4
-    || form == DWARFEncodings.DW_FORM_data8
-    || form == DWARFEncodings.DW_FORM_sdata
-    || form == DWARFEncodings.DW_FORM_udata;
-}
+    return (
+        form == DWARFEncodings.DW_FORM_data1 ||
+        form == DWARFEncodings.DW_FORM_data2 ||
+        form == DWARFEncodings.DW_FORM_data4 ||
+        form == DWARFEncodings.DW_FORM_data8 ||
+        form == DWARFEncodings.DW_FORM_sdata ||
+        form == DWARFEncodings.DW_FORM_udata
+    );
+};
 
 const isRefOffset = (form) => {
-    return form == DWARFEncodings.DW_FORM_ref1 
-    || form == DWARFEncodings.DW_FORM_ref2 
-    || form == DWARFEncodings.DW_FORM_ref4  
-    || form == DWARFEncodings.DW_FORM_ref8 
-    || form == DWARFEncodings.DW_FORM_ref_udata;
-}
+    return (
+        form == DWARFEncodings.DW_FORM_ref1 ||
+        form == DWARFEncodings.DW_FORM_ref2 ||
+        form == DWARFEncodings.DW_FORM_ref4 ||
+        form == DWARFEncodings.DW_FORM_ref8 ||
+        form == DWARFEncodings.DW_FORM_ref_udata
+    );
+};
 
 const readDWARFForm = (buffer, form) => {
-    switch(form) {
-        case DWARFEncodings.DW_FORM_addr:
-        {
+    switch (form) {
+        case DWARFEncodings.DW_FORM_addr: {
             return buffer.readBigUInt64();
         }
-        case DWARFEncodings.DW_FORM_block:
-        {
+        case DWARFEncodings.DW_FORM_block: {
             return buffer.readBuffer(buffer.readULEB128());
         }
-        case DWARFEncodings.DW_FORM_block1:
-        {
+        case DWARFEncodings.DW_FORM_block1: {
             return buffer.readBuffer(buffer.readUInt8());
         }
-        case DWARFEncodings.DW_FORM_block2:
-        {
+        case DWARFEncodings.DW_FORM_block2: {
             return buffer.readBuffer(buffer.readUInt16());
         }
-        case DWARFEncodings.DW_FORM_block4:
-        {
+        case DWARFEncodings.DW_FORM_block4: {
             return buffer.readBuffer(buffer.readUInt32());
         }
-        case DWARFEncodings.DW_FORM_data1:
-        {
+        case DWARFEncodings.DW_FORM_data1: {
             return buffer.readBuffer(1);
         }
-        case DWARFEncodings.DW_FORM_data2:
-        {
+        case DWARFEncodings.DW_FORM_data2: {
             return buffer.readBuffer(2);
         }
-        case DWARFEncodings.DW_FORM_data4:
-        {
+        case DWARFEncodings.DW_FORM_data4: {
             return buffer.readBuffer(4);
         }
-        case DWARFEncodings.DW_FORM_data8:
-        {
+        case DWARFEncodings.DW_FORM_data8: {
             return buffer.readBuffer(8);
         }
-        case DWARFEncodings.DW_FORM_sdata:
-        {
+        case DWARFEncodings.DW_FORM_sdata: {
             return buffer.readLEB128();
         }
-        case DWARFEncodings.DW_FORM_udata:
-        {
+        case DWARFEncodings.DW_FORM_udata: {
             return buffer.readULEB128();
         }
-        case DWARFEncodings.DW_FORM_exprloc:
-        {
+        case DWARFEncodings.DW_FORM_exprloc: {
             return buffer.readBuffer(buffer.readULEB128());
         }
-        case DWARFEncodings.DW_FORM_flag:
-        {
+        case DWARFEncodings.DW_FORM_flag: {
             return buffer.readUInt8() != 0;
         }
-        case DWARFEncodings.DW_FORM_flag_present:
-        {
+        case DWARFEncodings.DW_FORM_flag_present: {
             return true;
         }
-        case DWARFEncodings.DW_FORM_sec_offset:
-        {
+        case DWARFEncodings.DW_FORM_sec_offset: {
             return buffer.readUInt32();
         }
-        case DWARFEncodings.DW_FORM_ref1:
-        {
+        case DWARFEncodings.DW_FORM_ref1: {
             return buffer.readUInt8();
         }
-        case DWARFEncodings.DW_FORM_ref2:
-        {
+        case DWARFEncodings.DW_FORM_ref2: {
             return buffer.readUInt16();
         }
-        case DWARFEncodings.DW_FORM_ref4:
-        {
+        case DWARFEncodings.DW_FORM_ref4: {
             return buffer.readUInt32();
         }
-        case DWARFEncodings.DW_FORM_ref8:
-        {
+        case DWARFEncodings.DW_FORM_ref8: {
             return buffer.readBigUInt64();
         }
-        case DWARFEncodings.DW_FORM_ref_udata:
-        {
+        case DWARFEncodings.DW_FORM_ref_udata: {
             return buffer.readULEB128();
         }
-        case DWARFEncodings.DW_FORM_ref_addr:
-        {
+        case DWARFEncodings.DW_FORM_ref_addr: {
             return buffer.readUInt32();
         }
-        case DWARFEncodings.DW_FORM_ref_sig8:
-        {
+        case DWARFEncodings.DW_FORM_ref_sig8: {
             return buffer.readBigUInt64();
         }
-        case DWARFEncodings.DW_FORM_string:
-        {
+        case DWARFEncodings.DW_FORM_string: {
             return buffer.readCString();
         }
-        case DWARFEncodings.DW_FORM_strp:
-        {
+        case DWARFEncodings.DW_FORM_strp: {
             return buffer.readUInt32();
         }
-        case DWARFEncodings.DW_FORM_indirect:
-        {
+        case DWARFEncodings.DW_FORM_indirect: {
             return readDWARFForm(buffer.readULEB128());
         }
     }
-}
+};
 
-module.exports = { DWARFEncodings, getDWARFEncodingName, isBlock, isConstant, isRefOffset, readDWARFForm };
+module.exports = {
+    DWARFEncodings,
+    getDWARFEncodingName,
+    isBlock,
+    isConstant,
+    isRefOffset,
+    readDWARFForm,
+};

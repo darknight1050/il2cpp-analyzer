@@ -1,24 +1,31 @@
-const { analyzeStacktrace, getBeatsaberVersionFromStacktrace, splitStacktrace } = require("../analyzer"),
+const {
+        analyzeStacktrace,
+        getBeatsaberVersionFromStacktrace,
+        splitStacktrace,
+    } = require("../analyzer"),
     mongoose = require("mongoose"),
     Crash = require("../dbmodels/crash");
 
-mongoose.connect(process.env.MONGODB_URI)
+mongoose
+    .connect(process.env.MONGODB_URI)
     .then(() => console.log("Mongoose connected."))
-    .catch(e => console.log(e));;
-
+    .catch((e) => console.log(e));
 
 const defaultLimit = 200;
 
 //https://stackoverflow.com/a/1349426
 const randomID = (length) => {
     let result = "";
-    let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let characters =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let charactersLength = characters.length;
     for (let i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        result += characters.charAt(
+            Math.floor(Math.random() * charactersLength)
+        );
     }
     return result;
-}
+};
 
 const getAvailableID = async (crash) => {
     let id;
@@ -26,7 +33,7 @@ const getAvailableID = async (crash) => {
         id = randomID(4);
     } while (await Crash.findById(id).exec());
     return id;
-}
+};
 
 const getCrashes = async (filter) => {
     let limit = filter.limit || defaultLimit;
@@ -42,7 +49,7 @@ const getCrashes = async (filter) => {
         searchQuery: searchQuery === undefined || searchQuery === "",
         dateLimit: dateLimit == 0,
         version: version === "all",
-    }
+    };
 
     // Fix types for mongoose
     if (typeof limit !== "number") {
@@ -59,51 +66,44 @@ const getCrashes = async (filter) => {
 
     // Build search params
     let SearchParams = {
-        "size": limit,
-        "sort": [
-            { "uploadDate": { "order": "desc", "mode": "max" } }
-        ],
+        size: limit,
+        sort: [{ uploadDate: { order: "desc", mode: "max" } }],
         query: {
-            "bool": {
-                "must": [],
-                "filter": [],
+            bool: {
+                must: [],
+                filter: [],
             },
-        }
-    }
+        },
+    };
 
     if (!isNull.searchQuery) {
         SearchParams.query.bool.must.push({
-            "query_string": {
-                "fields": [
-                    "backtrace",
-                    "header",
-                    "mods.*",
-                    "log",
-                ],
-                "query": searchQuery,
+            query_string: {
+                fields: ["backtrace", "header", "mods.*", "log"],
+                query: searchQuery,
             },
-        })
+        });
     }
 
     // Filter by user id
     if (!isNull.userId) {
         SearchParams.query.bool.filter.push({
-            "term": { "userId": userId.toLowerCase() },
-        })
-    };
+            term: { userId: userId.toLowerCase() },
+        });
+    }
 
     // Filter by game version
     if (!isNull.version) {
         SearchParams.query.bool.filter.push({
-            "term": { "gameVersion": version.toLowerCase() },
-        })
-    };
+            term: { gameVersion: version.toLowerCase() },
+        });
+    }
 
     // Filter by date limit
     if (!isNull.dateLimit) {
         SearchParams.query.bool.filter.push({
-            "range": { "uploadDate": { "gte": "now-" + dateLimit + "d" } }
-        })
+            range: { uploadDate: { gte: "now-" + dateLimit + "d" } },
+        });
     }
 
     // ES Search
@@ -111,22 +111,21 @@ const getCrashes = async (filter) => {
     let hits = searchResult.body.hits.hits;
 
     // Remove not needed fields from result and map fields from ElasticSearch to MongoDB
-    hits = hits.map(hit => ({
+    hits = hits.map((hit) => ({
         userId: hit._source.userId,
         crashId: hit._id,
         uploadDate: hit._source.uploadDate,
         gameVersion: hit._source.gameVersion,
-    }))
+    }));
 
     return hits;
-}
+};
 
 const getCrash = async (crashId, includeOriginal = false) => {
     let statement = Crash.findById(crashId);
-    if (!includeOriginal)
-        statement = statement.select("-original");
+    if (!includeOriginal) statement = statement.select("-original");
     return statement.exec();
-}
+};
 
 const storeCrash = async (crash) => {
     const crashId = await getAvailableID();
@@ -145,7 +144,7 @@ const storeCrash = async (crash) => {
         header: undefined,
         stack: undefined,
         registers: undefined,
-    }
+    };
 
     try {
         splitStack = splitStacktrace(analyzedStacktrace);
@@ -170,6 +169,6 @@ const storeCrash = async (crash) => {
         // registers: splitStack.registers,
     }).save();
     return crashId;
-}
+};
 
 module.exports = { getCrashes, getCrash, storeCrash };

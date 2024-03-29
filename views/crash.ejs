@@ -1,12 +1,15 @@
 <html>
     <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Poppins&family=Roboto+Mono&display=swap" rel="stylesheet">
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Poppins&family=Roboto+Mono&display=swap"
+            rel="stylesheet"
+        />
         <style>
             html {
                 background-color: #0d1117;
-                font-family: 'Poppins', sans-serif;
+                font-family: "Poppins", sans-serif;
             }
 
             body {
@@ -54,7 +57,7 @@
                 overflow: auto;
                 width: 100%;
                 resize: none;
-                font-family: 'Roboto Mono', monospace;
+                font-family: "Roboto Mono", monospace;
             }
 
             textarea:focus {
@@ -100,7 +103,7 @@
             .info p span {
                 margin-top: -4px;
                 color: #ffa657;
-                font-size:1rem;
+                font-size: 1rem;
             }
 
             .info a {
@@ -120,22 +123,44 @@
                     >
                         Crash
                     </button>
-                    <button class="tablinks" id="log" onclick="updateState('log')">
+                    <button
+                        class="tablinks"
+                        id="log"
+                        onclick="updateState('log')"
+                    >
                         Log
                     </button>
-                    <button class="tablinks" id="mods" onclick="updateState('mods')">
+                    <button
+                        class="tablinks"
+                        id="mods"
+                        onclick="updateState('mods')"
+                    >
                         Mods
                     </button>
                 </div>
                 <div class="info">
-                    <p title="Crash ID">ID: <br><span id="crashId">loading...</span></p>
-                    <p title="User ID">User:<br><a href="#" class="userLink"><span id="userId">loading...</span></a></p>
-                    <p title="Upload date">Date: <br><span id="uploadDate">loading...</span></p>
-                    <p title="Game version">Ver.: <br><a href="#" class="gameVersionLink"><span id="gameVersion">loading...</span></a></p>
+                    <p title="Crash ID">
+                        ID: <br /><span id="crashId">loading...</span>
+                    </p>
+                    <p title="User ID">
+                        User:<br /><a href="#" class="userLink"
+                            ><span id="userId">loading...</span></a
+                        >
+                    </p>
+                    <p title="Upload date">
+                        Date: <br /><span id="uploadDate">loading...</span>
+                    </p>
+                    <p title="Game version">
+                        Ver.: <br /><a href="#" class="gameVersionLink"
+                            ><span id="gameVersion">loading...</span></a
+                        >
+                    </p>
                 </div>
             </div>
 
-            <textarea id="output" name="output" spellcheck="false" readonly>Loading...</textarea>
+            <textarea id="output" name="output" spellcheck="false" readonly>
+Loading...</textarea
+            >
         </div>
     </body>
     <script>
@@ -145,7 +170,10 @@
             if (id) selected = id;
             const tablinks = document.getElementsByClassName("tablinks");
             for (i = 0; i < tablinks.length; i++) {
-                tablinks[i].className = tablinks[i].className.replace(" active", "");
+                tablinks[i].className = tablinks[i].className.replace(
+                    " active",
+                    ""
+                );
             }
             document.getElementById(selected).className += " active";
             if (crashData) {
@@ -162,7 +190,10 @@
                         );
                         output.value =
                             sortedMods
-                                .map((mod) => mod.name + " (v" + mod.version + ")")
+                                .map(
+                                    (mod) =>
+                                        mod.name + " (v" + mod.version + ")"
+                                )
                                 .join("\n") || "Not Found!";
                         break;
                 }
@@ -186,34 +217,45 @@
                 userId.innerHTML = crash.userId || "?";
                 // Link to a filter with this user ID
                 if (crash.userId) {
-                    document.querySelector(".userLink").href = "/crashes/?userId=" + crash.userId;
+                    document.querySelector(".userLink").href =
+                        "/crashes/?userId=" + crash.userId;
                 }
                 let crashId = document.getElementById("crashId");
                 crashId.innerHTML = crash.crashId || "?";
                 let uploadDate = document.getElementById("uploadDate");
                 // Format date to be more readable
                 if (crash.uploadDate) {
-                    let date = new Date(new Date(crash.uploadDate) - (new Date()).getTimezoneOffset() * 60000).toISOString().replace(/T/, ' ').replace(/\..+/, '');
+                    let date = new Date(
+                        new Date(crash.uploadDate) -
+                            new Date().getTimezoneOffset() * 60000
+                    )
+                        .toISOString()
+                        .replace(/T/, " ")
+                        .replace(/\..+/, "");
                     uploadDate.innerHTML = date;
                 } else {
                     uploadDate.innerHTML = "?";
                 }
                 let gameVersion = document.getElementById("gameVersion");
                 if (crash.gameVersion) {
-                    let gameVersionLink = document.querySelector(".gameVersionLink");
+                    let gameVersionLink =
+                        document.querySelector(".gameVersionLink");
                     // Link to a filter with this game version
-                    gameVersionLink.href = "/crashes/?version=" + crash.gameVersion;
+                    gameVersionLink.href =
+                        "/crashes/?version=" + crash.gameVersion;
 
                     let regex = /(\_\d*)/g;
                     // Remove the _ and the number
-                    gameVersion.innerHTML = crash.gameVersion.replace(regex, "");
+                    gameVersion.innerHTML = crash.gameVersion.replace(
+                        regex,
+                        ""
+                    );
                 } else {
                     gameVersion.innerHTML = "?";
                 }
-                
-             
 
-                document.title = "Crash - " + crash.crashId + " - " + crash.userId;
+                document.title =
+                    "Crash - " + crash.crashId + " - " + crash.userId;
             })
             .catch((err) => {
                 crashData = undefined;

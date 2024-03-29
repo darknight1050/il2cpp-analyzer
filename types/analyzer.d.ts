@@ -3,5 +3,4 @@ declare interface AnalyzedStacktrace {
     header?: string;
     backtrace?: string;
     registers?: string;
-    
 }

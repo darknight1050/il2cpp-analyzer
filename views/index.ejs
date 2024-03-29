@@ -49,35 +49,40 @@
     <body>
         <div class="main">
             <textarea id="input" name="input" spellcheck="false"></textarea>
-            <textarea id="output" name="output" spellcheck="false" readonly></textarea>
+            <textarea
+                id="output"
+                name="output"
+                spellcheck="false"
+                readonly
+            ></textarea>
         </div>
         <script type="text/javascript">
             var input = document.getElementById("input");
             var output = document.getElementById("output");
-            var analyze = async _ => {
+            var analyze = async (_) => {
                 try {
-                    if(input.value.length > 0) {
+                    if (input.value.length > 0) {
                         let body = { stacktrace: input.value };
-                        if(input.value.startsWith("http"))
+                        if (input.value.startsWith("http"))
                             body = { url: input.value };
                         fetch("/api/analyze", {
-                                method: "POST",
-                                headers: {
-                                    Accept: "application/json",
-                                    "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify(body)
+                            method: "POST",
+                            headers: {
+                                Accept: "application/json",
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify(body),
                         })
-                        .then(response => response.json())
-                        .then(data => {
-                            if(data.error) {
-                                output.value = data.error;
-                            } else {
-                                output.value = data.stacktrace;
-                            }
-                        });
+                            .then((response) => response.json())
+                            .then((data) => {
+                                if (data.error) {
+                                    output.value = data.error;
+                                } else {
+                                    output.value = data.stacktrace;
+                                }
+                            });
                     }
-                } catch(err) {
+                } catch (err) {
                     console.error("Error: " + err);
                 }
             };

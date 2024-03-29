@@ -7,15 +7,15 @@ Struct.TYPES.ULONG = {
     write(value, context, offset) {
         context.buffer.writeBigUInt64LE(BigInt(value), offset);
     },
-    SIZE: 8
+    SIZE: 8,
 };
 
 Struct.TYPES.SBYTE = {
     read(buffer, offset) {
-      return buffer.readInt8(offset)
+        return buffer.readInt8(offset);
     },
     write(value, context, offset) {
-      context.buffer.writeInt8(value, offset);
+        context.buffer.writeInt8(value, offset);
     },
-    SIZE: 1
+    SIZE: 1,
 };

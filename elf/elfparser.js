@@ -38,7 +38,7 @@ const Elf64_Nhdr = new Struct()
     .addMember(Struct.TYPES.UINT, "n_namesz")
     .addMember(Struct.TYPES.UINT, "n_descsz")
     .addMember(Struct.TYPES.UINT, "n_type");
-    
+
 const readNullTerminatedString = (buffer, offset) => {
     let len = 0;
     while (buffer.readUInt8(offset + len) != 0) {
@@ -52,30 +52,44 @@ const readNullTerminatedString = (buffer, offset) => {
 
 const readArray = (buffer, struct, offset, entsize, num) => {
     let array = [];
-    for(let i = 0; i < num; i++) {
+    for (let i = 0; i < num; i++) {
         array.push(struct.readContext(buffer, offset + i * entsize).data);
     }
     return array;
-}
+};
 
 const readELF = (buffer) => {
     let buildID;
     const sections = {};
     const elf = Elf64_Ehdr.readContext(buffer).data;
-    let sectionHeaders = readArray(buffer, Elf64_Shdr, elf.e_shoff, elf.e_shentsize, elf.e_shnum);
-    const shstrtab = sectionHeaders[elf.e_shstrndx]
-    sectionHeaders.forEach(section => {
-        const name = readNullTerminatedString(buffer, shstrtab.sh_offset + section.sh_name);
-        if(section.sh_type == SHT_NOTE && name === ".note.gnu.build-id") {
+    let sectionHeaders = readArray(
+        buffer,
+        Elf64_Shdr,
+        elf.e_shoff,
+        elf.e_shentsize,
+        elf.e_shnum
+    );
+    const shstrtab = sectionHeaders[elf.e_shstrndx];
+    sectionHeaders.forEach((section) => {
+        const name = readNullTerminatedString(
+            buffer,
+            shstrtab.sh_offset + section.sh_name
+        );
+        if (section.sh_type == SHT_NOTE && name === ".note.gnu.build-id") {
             const note = Elf64_Nhdr.readContext(buffer, section.sh_offset).data;
-            if(note.n_descsz == 20) {
-                const buildIDOffset = section.sh_offset + Elf64_Nhdr.SIZE + note.n_namesz;
-                buildID = buffer.toString("hex", buildIDOffset, buildIDOffset + note.n_descsz);
+            if (note.n_descsz == 20) {
+                const buildIDOffset =
+                    section.sh_offset + Elf64_Nhdr.SIZE + note.n_namesz;
+                buildID = buffer.toString(
+                    "hex",
+                    buildIDOffset,
+                    buildIDOffset + note.n_descsz
+                );
             }
         }
-        sections[name] = {offset: section.sh_offset, size: section.sh_size};
+        sections[name] = { offset: section.sh_offset, size: section.sh_size };
     });
     return { buildID: buildID, sections: sections };
-}
+};
 
 module.exports = { readELF };

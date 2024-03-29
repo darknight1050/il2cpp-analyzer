@@ -4,14 +4,13 @@ const assert = require("assert"),
     Bn = require("bn.js");
 
 class PositionalBuffer {
-
     constructor(buffer, startPosition = 0) {
         assert(Buffer.isBuffer(buffer), "No buffer");
         this._buffer = buffer;
         this._startPosition = startPosition;
         this._position = startPosition;
     }
-    
+
     get position() {
         return this._position - this._startPosition;
     }
@@ -41,14 +40,14 @@ class PositionalBuffer {
         return result;
         //return this._readStandard("readUInt8", length);
     }
-    
+
     readInt16(length = 2) {
         const result = this._buffer.readInt16LE(this._position);
         this._position += length;
         return result;
         //return this._readStandard("readInt16LE", length);
     }
-    
+
     readUInt16(length = 2) {
         const result = this._buffer.readUInt16LE(this._position);
         this._position += length;
@@ -133,17 +132,24 @@ class PositionalBuffer {
                 throw new Error("Null terminated string went outside buffer!");
             }
         }
-        const result = this._buffer.toString("ASCII", this._position, this._position + len);
+        const result = this._buffer.toString(
+            "ASCII",
+            this._position,
+            this._position + len
+        );
         this._position += len + 1;
         return result;
     }
 
     readBuffer(length) {
-        const result = Uint8Array.prototype.slice.call(this._buffer, this._position, this._position + length);
+        const result = Uint8Array.prototype.slice.call(
+            this._buffer,
+            this._position,
+            this._position + length
+        );
         this._position += length;
         return result;
     }
-
 }
 
 module.exports = PositionalBuffer;

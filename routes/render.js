@@ -1,5 +1,5 @@
 const { getBeatSaberVersions } = require("../analyzer");
-const { getCrashes } = require("../storage/storageMongoDB"); 
+const { getCrashes } = require("../storage/storageMongoDB");
 
 /**
  * Temporary array for game versions
@@ -28,13 +28,18 @@ module.exports = (app) => {
             const versions = getBeatSaberVersions();
             if (versions.length !== 0) {
                 for (const [version, buildID] of Object.entries(versions)) {
-                    bsVersions.unshift({ name: ShortenGameVersion(version), value: version });
+                    bsVersions.unshift({
+                        name: ShortenGameVersion(version),
+                        value: version,
+                    });
                 }
             }
             // Sort by name
-            bsVersions = bsVersions.sort((a, b) => b.name.localeCompare(a.name));
+            bsVersions = bsVersions.sort((a, b) =>
+                b.name.localeCompare(a.name)
+            );
         }
-        
+
         res.render("crashes", {
             bsVersions,
             queryParams: req.query,
@@ -42,10 +47,10 @@ module.exports = (app) => {
     });
 
     app.get("/crashes/:crashId", async (req, res) => {
-        if(req.params.crashId === "latest") {
+        if (req.params.crashId === "latest") {
             res.redirect("./" + (await getCrashes({ limit: 1 }))[0].crashId);
             return;
         }
         res.render("crash", { crashId: req.params.crashId });
     });
-}
+};
