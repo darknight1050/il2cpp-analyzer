@@ -24,6 +24,11 @@ Possible operators (have to be written in uppercase):
 
 ### Query examples
 
+Complex query: user has mods BetterSongSearch and Nya, ignore hook crashes, ignore crashes with no logs, ignore a particular crash memory address logged in the log (useful for when you already fixed a crash and want to ignore all logs related to it, just add the string unique to that crash as a NOT rule)
+```bash
+mods.name: "Nya" AND mods.name: BetterSongSearch AND NOT A64HookFunctionV  AND _exists_:log AND NOT log:000000000034a464
+```
+
 Search for crashes with your build id:
 ```bash
 backtrace: b86ed6d1d47ebf4a2a19bd477781232a2d32a7dd
@@ -55,6 +60,11 @@ mods.name: "Mod name"
 Query by mod version (without the v):
 ```bash
 mods.version: "1.0.0"
+```
+
+Query crashes with existing logs:
+```bash
+_exists_:log 
 ```
 
 ### What we index
