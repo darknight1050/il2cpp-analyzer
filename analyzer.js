@@ -77,6 +77,8 @@ const readVersionsDir = async (path) => {
         if (file.isFile()) threads.push(readVersion(path + "/" + file.name));
     }
     await Promise.all(threads);
+    gc();
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 };
 
 const loadVersions = async () => {
