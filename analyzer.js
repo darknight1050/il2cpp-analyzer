@@ -69,6 +69,10 @@ const readVersion = async (path) => {
     gc();
 };
 
+const sleep = (ms) => {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+};
+
 const readVersionsDir = async (path) => {
     let files = await fs.readdir(path, { withFileTypes: true });
     const threads = [];
@@ -78,7 +82,7 @@ const readVersionsDir = async (path) => {
     }
     await Promise.all(threads);
     gc();
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await sleep(1000);
 };
 
 const loadVersions = async () => {
