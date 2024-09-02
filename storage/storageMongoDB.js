@@ -164,7 +164,7 @@ const storeCrash = async (crash) => {
                 typeof mod.version === "string" &&
                 mod.version.length >= 0
             ) {
-                mods.push_back(mod);
+                mods.push(mod);
             }
         });
     }
