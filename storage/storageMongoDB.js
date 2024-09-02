@@ -153,7 +153,7 @@ const storeCrash = async (crash) => {
         console.error("Failed to split stacktrace for crash " + crashId + "!");
         console.error(e);
     }
-    let mods = {};
+    let mods = [];
     if (crash.mods) {
         crash.mods.forEach((mod) => {
             if (
@@ -168,6 +168,7 @@ const storeCrash = async (crash) => {
             }
         });
     }
+    if (mods.length === 0) mods = undefined;
     new Crash({
         crashId: crashId,
         libIl2CppBuildID: crash.libIl2CppBuildID,

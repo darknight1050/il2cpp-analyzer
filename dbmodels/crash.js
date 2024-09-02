@@ -35,6 +35,7 @@ const crashSchema = new mongoose.Schema(
             ],
             es_indexed: true,
             es_type: "nested",
+            default: undefined,
         },
         // Parsed fields
         backtrace: { type: String, es_indexed: true, es_type: "text" },
