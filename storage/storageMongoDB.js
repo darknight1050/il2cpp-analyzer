@@ -153,7 +153,21 @@ const storeCrash = async (crash) => {
         console.error("Failed to split stacktrace for crash " + crashId + "!");
         console.error(e);
     }
-
+    let mods = {};
+    if (crash.mods) {
+        crash.mods.forEach((mod) => {
+            if (
+                mod.name &&
+                typeof mod.name === "string" &&
+                mod.name.length >= 0 &&
+                mod.version &&
+                typeof mod.version === "string" &&
+                mod.version.length >= 0
+            ) {
+                mods.push_back(mod);
+            }
+        });
+    }
     new Crash({
         crashId: crashId,
         libIl2CppBuildID: crash.libIl2CppBuildID,
@@ -161,7 +175,7 @@ const storeCrash = async (crash) => {
         original: crash.stacktrace,
         stacktrace: analyzedStacktrace,
         log: crash.log,
-        mods: crash.mods,
+        mods: mods,
         gameVersion: gameVersion,
         uploadDate: Date.now(),
         header: splitStack.header,
