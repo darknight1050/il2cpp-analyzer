@@ -128,8 +128,7 @@ const getCrash = async (crashId, includeOriginal = false) => {
     return statement.exec();
 };
 
-const storeCrash = async (crash) => {
-    const crashId = await getAvailableID();
+const storeCrash = async (crashId, crash) => {
     let gameVersion = getBeatsaberVersionFromBuildId(crash.libIl2CppBuildID);
     if (gameVersion === undefined) {
         // Try to get game version from stacktrace
@@ -185,7 +184,12 @@ const storeCrash = async (crash) => {
         // stack: splitStack.stack,
         // registers: splitStack.registers,
     }).save();
+};
+
+const uploadCrashNoWait = async (crash) => {
+    const crashId = await getAvailableID();
+    storeCrash(crashId, crash);
     return crashId;
 };
 
-module.exports = { getCrashes, getCrash, storeCrash };
+module.exports = { getCrashes, getCrash, uploadCrashNoWait };

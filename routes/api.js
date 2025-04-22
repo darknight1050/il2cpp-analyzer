@@ -5,7 +5,11 @@ const _ = require("lodash"),
         analyzeStacktrace,
         readVersion,
     } = require("../analyzer"),
-    { storeCrash, getCrashes, getCrash } = require("../storage/storageMongoDB"),
+    {
+        uploadCrashNoWait,
+        getCrashes,
+        getCrash,
+    } = require("../storage/storageMongoDB"),
     { readELF } = require("../elf/elfparser"),
     axios = require("axios"),
     express = require("express");
@@ -135,7 +139,7 @@ module.exports = (app) => {
                 data = "No stacktrace!";
             } else {
                 code = 200;
-                data = await storeCrash(req.body);
+                data = await uploadCrashNoWait(req.body);
             }
             res.status(code).setHeader("Content-Type", "text/plain").send(data);
         }

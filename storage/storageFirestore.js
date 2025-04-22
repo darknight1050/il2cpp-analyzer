@@ -90,8 +90,7 @@ const getCrash = async (crashId, includeOriginal = false) => {
     return data;
 };
 
-const storeCrash = async (crash) => {
-    const crashId = await getAvailableID();
+const storeCrash = async (crashId, crash) => {
     const write = async (crashId, crash) => {
         crashesCollection.doc(crashId).set({
             userId: crash.userId,
@@ -105,4 +104,9 @@ const storeCrash = async (crash) => {
     return crashId;
 };
 
+const uploadCrashNoWait = async (crash) => {
+    const crashId = await getAvailableID();
+    storeCrash(crashId, crash);
+    return crashId;
+};
 module.exports = { getCrashes, getCrash, storeCrash };
