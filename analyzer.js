@@ -3,7 +3,8 @@ const fssync = require("fs"),
     fsPath = require("path"),
     gc = require("expose-gc/function"),
     { readELF } = require("./elf/elfparser"),
-    { searchDWARFLines } = require("./elf/dwarfparser");
+    { searchDWARFLines } = require("./elf/dwarfparser"),
+    { downloadIfExists } = require("./bsquest-so-info");
 
 const BuildIDTypes = {
     JSON: 1,
@@ -128,11 +129,18 @@ const analyzeSo = (buffer, sections, addresses) => {
     return searchDWARFLines(buffer, sections, addresses);
 };
 
-const analyzeBuildIDs = (buildIDs) => {
+const analyzeBuildIDs = async (buildIDs) => {
     let analyzed = {};
     for (const [buildID, addresses] of Object.entries(buildIDs)) {
         try {
-            const buildIDData = availableBuildIDs[buildID.toLocaleLowerCase()];
+            let buildIDData = availableBuildIDs[buildID.toLocaleLowerCase()];
+            if (!buildIDData) {
+                const path = await downloadIfExists(
+                    buildID.toLocaleLowerCase()
+                );
+                if (path) await readVersion(path);
+            }
+            buildIDData = availableBuildIDs[buildID.toLocaleLowerCase()];
             if (buildIDData) {
                 const buffer = fssync.readFileSync(
                     versionsPath + "/" + buildIDData.name
@@ -162,7 +170,7 @@ const analyzeBuildIDs = (buildIDs) => {
     return analyzed;
 };
 
-const analyzeStacktrace = (stacktrace) => {
+const analyzeStacktrace = async (stacktrace) => {
     let buildIDs = [];
     let match;
     while ((match = regexPc.exec(stacktrace))) {
@@ -171,7 +179,7 @@ const analyzeStacktrace = (stacktrace) => {
         if (!buildIDs[buildID]) buildIDs[buildID] = [];
         buildIDs[buildID].push(address);
     }
-    const analyzed = analyzeBuildIDs(buildIDs);
+    const analyzed = await analyzeBuildIDs(buildIDs);
     while ((match = regexPc.exec(stacktrace))) {
         const buildID = match.groups.buildID;
         const address = "0x" + match.groups.address;

@@ -96,7 +96,7 @@ const storeCrash = async (crash) => {
         crashesCollection.doc(crashId).set({
             userId: crash.userId,
             original: crash.stacktrace,
-            stacktrace: analyzeStacktrace(crash.stacktrace),
+            stacktrace: await analyzeStacktrace(crash.stacktrace),
             log: crash.log,
             uploadDate: Date.now(),
         });

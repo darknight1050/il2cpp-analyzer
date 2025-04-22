@@ -135,7 +135,7 @@ const storeCrash = async (crash) => {
         // Try to get game version from stacktrace
         gameVersion = getBeatsaberVersionFromStacktrace(crash.stacktrace);
     }
-    const analyzedStacktrace = analyzeStacktrace(crash.stacktrace);
+    const analyzedStacktrace = await analyzeStacktrace(crash.stacktrace);
 
     /**
      * @type {AnalyzedStacktrace}

@@ -46,7 +46,7 @@ module.exports = (app) => {
 
             if (hasBuildIDs) {
                 res.status(200).json({
-                    result: analyzeBuildIDs(buildIDs),
+                    result: await analyzeBuildIDs(buildIDs),
                 });
                 return;
             }
@@ -85,7 +85,7 @@ module.exports = (app) => {
                     }
                 }
                 res.status(200).json({
-                    stacktrace: analyzeStacktrace(stacktrace),
+                    stacktrace: await analyzeStacktrace(stacktrace),
                 });
                 return;
             }
