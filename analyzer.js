@@ -19,18 +19,39 @@ const regexPc =
     /#[0-9]+? +?pc +?(?<address>.{16}) +?\/.+?(?<insertSo>\().*?(?<insertJson>BuildId: )(?<buildID>.{40})\)/dg;
 
 const readVersion = async (path) => {
-    const buffer = await fs.readFile(path);
-    if (buffer.length == 0) {
-        return;
-    }
     const name = path.substring(versionsPath.length + 1);
     try {
         const extension = fsPath.extname(name).substring(1);
         switch (extension) {
             case "json": {
-                const json = JSON.parse(buffer);
-                if (json.buildID !== undefined) {
-                    const buildID = json.buildID.toLocaleLowerCase();
+                let buildID = undefined;
+                const handle = await fs.open(path);
+                const size = 52;
+                const { buffer: fastReadBuffer, bytesRead } = await handle.read(
+                    Buffer.alloc(size),
+                    0,
+                    size,
+                    0
+                );
+                const value = fastReadBuffer.toString("utf-8", 0, bytesRead);
+                handle.close();
+                const buildIDStart = '{"buildID":"';
+                if (value.startsWith('{"buildID":"')) {
+                    const end = value.indexOf('"', buildIDStart.length);
+                    if (end > 0) {
+                        buildID = value.substring(buildIDStart.length, end);
+                    } else {
+                        buildID = value.substring(buildIDStart.length);
+                    }
+                } else {
+                    const buffer = await fs.readFile(path);
+                    if (buffer.length > 0) {
+                        buildID = JSON.parse(buffer).buildID;
+                        buffer.fill(0);
+                    }
+                }
+                if (buildID !== undefined) {
+                    buildID = buildID.toLocaleLowerCase();
                     console.log("Loaded " + name + ": " + buildID);
                     availableBuildIDs[buildID] = {
                         name: name,
@@ -45,6 +66,10 @@ const readVersion = async (path) => {
                 break;
             }
             case "so": {
+                const buffer = await fs.readFile(path);
+                if (buffer.length == 0) {
+                    return;
+                }
                 const elf = readELF(buffer);
                 if (elf.sections) {
                     console.log("Loaded " + name + ": " + elf.buildID);
@@ -56,6 +81,7 @@ const readVersion = async (path) => {
                 } else {
                     console.log("Couldn't find .debug section in " + name);
                 }
+                buffer.fill(0);
                 break;
             }
             default: {
@@ -66,7 +92,6 @@ const readVersion = async (path) => {
     } catch (e) {
         console.log("Error loading " + name + ": " + e);
     }
-    buffer.fill(0);
     gc();
 };
 
