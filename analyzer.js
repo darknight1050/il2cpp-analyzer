@@ -196,6 +196,7 @@ const analyzeBuildIDs = async (buildIDs) => {
 };
 
 const analyzeStacktrace = async (stacktrace) => {
+    if(!stacktrace.endsWith("\n")) stacktrace += "\n";
     let buildIDs = [];
     let match;
     while ((match = regexPc.exec(stacktrace))) {
@@ -204,8 +205,10 @@ const analyzeStacktrace = async (stacktrace) => {
         if (!buildIDs[buildID]) buildIDs[buildID] = [];
         buildIDs[buildID].push(address);
     }
+    let safetyLoopMax = 1000;
     const analyzed = await analyzeBuildIDs(buildIDs);
     while ((match = regexPc.exec(stacktrace))) {
+        if(safetyLoopMax-- <= 0) break;
         const buildID = match.groups.buildID;
         const address = "0x" + match.groups.address;
         if (analyzed[buildID] && analyzed[buildID][address]) {
@@ -225,7 +228,12 @@ const analyzeStacktrace = async (stacktrace) => {
                     const insertPos = match.indices.groups.insertSo[0];
                     const lineStart =
                         stacktrace.lastIndexOf("\n", insertPos) + 1;
-                    let lineEnd = stacktrace.indexOf("\n", insertPos) + 1;
+                    let lineEnd = stacktrace.indexOf("\n", insertPos);
+                    if(lineEnd == -1) {
+                        stacktrace += "\n";
+                        lineEnd = stacktrace.indexOf("\n", insertPos);
+                    }
+                    lineEnd += 1;
                     const spaces = " ".repeat(insertPos - lineStart);
                     for (const entry of result) {
                         const textInsert =
