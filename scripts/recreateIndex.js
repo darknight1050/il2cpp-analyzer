@@ -14,7 +14,12 @@ async function recreateIndex() {
     });
 }
 recreateIndex();
-
+function sleepSync(ms) {
+  const end = Date.now() + ms;
+  while (Date.now() < end) {
+    // busy wait
+  }
+}
 function sync() {
     return new Promise((resolve, reject) => {
         const stream = crash.synchronize();
@@ -23,6 +28,7 @@ function sync() {
         stream.on("data", function (err, doc) {
             count++;
             console.log("indexed " + count + " document");
+            sleepSync(2);
         });
 
         stream.on("close", async function () {
