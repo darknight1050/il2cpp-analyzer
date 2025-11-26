@@ -167,9 +167,10 @@ const analyzeBuildIDs = async (buildIDs) => {
             }
             buildIDData = availableBuildIDs[buildID.toLocaleLowerCase()];
             if (buildIDData) {
-                const buffer = fssync.readFileSync(
-                    versionsPath + "/" + buildIDData.name
-                );
+                const buffer = await fs.readFile(versionsPath + "/" + buildIDData.name);
+                if (buffer.length == 0) {
+                    return;
+                }
                 switch (buildIDData.type) {
                     case BuildIDTypes.JSON: {
                         const json = JSON.parse(buffer);
