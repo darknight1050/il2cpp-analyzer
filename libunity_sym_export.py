@@ -12,5 +12,8 @@ def DumpFunction(fn):
 for fn in getCurrentProgram().getFunctionManager().getFunctions(True):
     DumpFunction(fn)
 
+if currentProgram.getExecutableFormat().endswith('(ELF)'):
+    currentProgram.setImageBase(toAddr(0), True)
+
 with open(os.path.join(GetScriptDirectory(), ".\\libunity_sym.json"), "w") as outfile:
     json.dump(jsonData, outfile, indent=2)
