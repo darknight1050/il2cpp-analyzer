@@ -1,7 +1,7 @@
 const { loadVersions, readVersion } = require("./analyzer"),
     { downloadPackages } = require("./qpackagesDownloader"),
     { updateCache } = require("./bsquest-so-info");
-require("dotenv").config();
+require("dotenv").config({ quiet: true });
 
 const http = require("http"),
     express = require("express"),

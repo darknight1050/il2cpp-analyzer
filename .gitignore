@@ -135,3 +135,6 @@ versions/qpackages
 versions/bsquest
 versions/uploaded
 mongo-volume/
+# Docker bind-mount data directories
+/elasticsearch-data/
+/db/

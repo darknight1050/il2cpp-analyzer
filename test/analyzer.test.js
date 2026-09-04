@@ -5,10 +5,12 @@ let {
 } = require("../analyzer");
 const fs = require("fs/promises");
 
-// Set up the versions (this needs to run faster)
+// Set up the versions. This scans every cached .so/.json under ./versions, so
+// the time it takes scales with how much the package cache has been filled in;
+// keep the timeout generous rather than tuned to an empty cache.
 beforeAll(async () => {
     await loadVersions();
-}, 10000);
+}, 180000);
 
 test("Parsing stacktrace 1", async () => {
     {

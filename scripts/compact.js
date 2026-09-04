@@ -1,12 +1,23 @@
-require("dotenv").config({path: "../.env"});
+require("dotenv").config({
+    path: require("path").join(__dirname, "../.env"),
+    quiet: true,
+});
 
 const crash = require("../dbmodels/crash");
 const mongoose = require("mongoose");
 
 async function compact() {
-    mongoose.connect(process.env.MONGODB_URI, async () => {
-        const result = await mongoose.connection.db.command({ compact: 'crashes' });
-        console.log('Compact result:', result);
-    });
+    await mongoose.connect(process.env.MONGODB_URI);
+    try {
+        const result = await mongoose.connection.db.command({
+            compact: "crashes",
+        });
+        console.log("Compact result:", result);
+    } finally {
+        await mongoose.disconnect();
+    }
 }
-compact();
+compact().catch((e) => {
+    console.error(e);
+    process.exitCode = 1;
+});

@@ -1,12 +1,19 @@
-version: '3.6'
+# Production stack. Everything binds to loopback only - put a reverse proxy in
+# front of the app if it needs to be reachable from outside the host.
+#
+#   production:   docker compose up -d
+#   development:  docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+#
+# Settings come from .env (see .env.example).
 
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.4.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.5.3
+    restart: unless-stopped
     environment:
       - xpack.security.enabled=false
       - discovery.type=single-node
-      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+      - ES_JAVA_OPTS=-Xms${ES_HEAP:-2g} -Xmx${ES_HEAP:-2g}
     ulimits:
       memlock:
         soft: -1
@@ -17,55 +24,59 @@ services:
     cap_add:
       - IPC_LOCK
     volumes:
-      - elasticsearch-data:/usr/share/elasticsearch/data
+      - ${ES_DATA_PATH:-./elasticsearch-data}:/usr/share/elasticsearch/data
     ports:
-      - 9200:9200
-      - 9300:9300
+      - 127.0.0.1:${ES_PORT:-9200}:9200
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
 
-  mongo: 
-    image: mongo:latest
-    command: mongod --port 27027
+  mongodb:
+    # Pin to the major you already run - MongoDB refuses to start on a data
+    # directory written by a newer release. Check with db.version().
+    image: mongo:${MONGO_VERSION:-8}
+    restart: unless-stopped
     environment:
-      - MONGO_INITDB_DATABASE=analyzer
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=root
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER:?set MONGO_USER in .env}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD:?set MONGO_PASSWORD in .env}
     volumes:
-      - ./docker/dbinit/:/docker-entrypoint-initdb.d/:ro
-      - mongo-data:/data/db
+      - ${MONGO_DATA_PATH:-./db}:/data/db
     ports:
-      - 27027:27027
-  mongo-express:
-    image: mongo-express:latest
+      - 127.0.0.1:${MONGO_PORT:-27017}:27017
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval 'db.adminCommand({ping:1})' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
+
+  app:
+    build:
+      context: .
+      target: prod
     restart: unless-stopped
     depends_on:
-      - mongo
-    ports:
-      - 8081:8081
+      mongodb:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
     environment:
-      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
-      - ME_CONFIG_MONGODB_ADMINUSERNAME=root
-      - ME_CONFIG_MONGODB_ADMINPASSWORD=root
-      - ME_CONFIG_REQUEST_SIZE=5999999999999kb    
-      - ME_CONFIG_MONGODB_SERVER=mongo    
-      - ME_CONFIG_MONGODB_PORT=27027
-
-  kibana:
-    image: docker.elastic.co/kibana/kibana:7.4.0
-    restart: unless-stopped
+      - MONGODB_URI=mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/${MONGO_DB:-analyzer}?ssl=false&authSource=admin
+      - ELASTICSEARCH_URI=http://elasticsearch:9200
+      - PORT=5000
     volumes:
-      - kibana-data:/usr/share/kibana/config 
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      # The symbol cache is many GB and must outlive the container.
+      - ${VERSIONS_PATH:-./versions}:/app/versions
     ports:
-      - 5601:5601
-    depends_on:
-      - elasticsearch
-
-volumes:
-  elasticsearch-data:
-    driver: local
-  mongo-data:
-    driver: local
-  kibana-data:
-    
-  
+      - 127.0.0.1:${APP_PORT:-5000}:5000
+    healthcheck:
+      # loadVersions() scans the whole symbol cache before the server listens,
+      # so allow a long start_period on a big cache.
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5000/api/versions').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 600s

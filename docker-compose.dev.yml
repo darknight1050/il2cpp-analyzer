@@ -1,0 +1,41 @@
+# Development overrides. Adds the admin UIs and swaps the app to the dev image
+# target so source changes reload without a rebuild.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+services:
+  app:
+    build:
+      target: dev
+    volumes:
+      - .:/app
+      # keep the image's node_modules rather than shadowing them with the host's
+      - /app/node_modules
+      - ${VERSIONS_PATH:-./versions}:/app/versions
+
+  mongo-express:
+    image: mongo-express:latest
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    ports:
+      - 127.0.0.1:8081:8081
+    environment:
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_USER}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_PASSWORD}
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_REQUEST_SIZE=5999999999999kb
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:9.5.3
+    restart: unless-stopped
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    ports:
+      - 127.0.0.1:5601:5601
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200

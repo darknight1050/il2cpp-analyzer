@@ -5,12 +5,18 @@ const {
         splitStacktrace,
     } = require("../analyzer"),
     mongoose = require("mongoose"),
-    Crash = require("../dbmodels/crash");
+    Crash = require("../dbmodels/crash"),
+    { ensureIndex, search } = require("./elasticsearch");
 
 mongoose
     .connect(process.env.MONGODB_URI)
     .then(() => console.log("Mongoose connected."))
     .catch((e) => console.log(e));
+
+// Make sure the crash index exists with our mapping before the first search.
+ensureIndex().catch((e) =>
+    console.log("ElasticSearch index setup failed: " + e.message)
+);
 
 const defaultLimit = 200;
 
@@ -107,9 +113,10 @@ const getCrashes = async (filter) => {
         });
     }
 
-    // ES Search
-    let searchResult = await Crash.esSearch(SearchParams, { hydrate: false });
-    let hits = searchResult.body.hits.hits;
+    // ES Search. The v8+ client returns the response body directly, so there
+    // is no .body wrapper to unpack any more.
+    let searchResult = await search(SearchParams);
+    let hits = searchResult.hits.hits;
 
     // Remove not needed fields from result and map fields from ElasticSearch to MongoDB
     hits = hits.map((hit) => ({

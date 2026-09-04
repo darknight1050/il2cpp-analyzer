@@ -1,4 +1,7 @@
-require("dotenv").config({path: "../.env"});
+require("dotenv").config({
+    path: require("path").join(__dirname, "../.env"),
+    quiet: true,
+});
 
 const crash = require("../dbmodels/crash");
 const mongoose = require("mongoose");
@@ -12,7 +15,8 @@ const {
 async function analyze() {
     // Load the versions of older crashes
     await loadVersions();
-    mongoose.connect(process.env.MONGODB_URI, async () => {
+    await mongoose.connect(process.env.MONGODB_URI);
+    try {
         // Find all crashes with empty gameversion
         const cursor = crash
             .find({
@@ -73,8 +77,11 @@ async function analyze() {
             }
             console.log(`Analyzed ${++count} crashes, saved ${saved}.`);
         }
-
-        mongoose.disconnect();
-    });
+    } finally {
+        await mongoose.disconnect();
+    }
 }
-analyze();
+analyze().catch((e) => {
+    console.error(e);
+    process.exitCode = 1;
+});
