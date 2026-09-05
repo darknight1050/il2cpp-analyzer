@@ -5,6 +5,7 @@ require("dotenv").config({
 
 const crash = require("../dbmodels/crash");
 const mongoose = require("mongoose");
+const { withRetry } = require("./retry");
 const {
   recreateIndex: recreateEsIndex,
   bulkIndexCrashes,
@@ -45,15 +46,15 @@ async function recreateIndex() {
 
     for (;;) {
       const filter = lastId == null ? {} : { _id: { $gt: lastId } };
-      const batch = await crash
-        .find(filter)
-        .sort({ _id: 1 })
-        .limit(BATCH_SIZE)
-        .exec();
+      const batch = await withRetry("fetching batch from MongoDB", () =>
+        crash.find(filter).sort({ _id: 1 }).limit(BATCH_SIZE).exec(),
+      );
       if (batch.length === 0) break;
 
       lastId = batch[batch.length - 1]._id;
-      const result = await bulkIndexCrashes(batch);
+      const result = await withRetry("indexing batch into ElasticSearch", () =>
+        bulkIndexCrashes(batch),
+      );
       indexed += result.indexed;
       failed.push(...result.failed);
       // Printing the id makes an interrupted run resumable.

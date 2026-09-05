@@ -35,15 +35,17 @@ async function analyze() {
     let saved = 0;
 
     for (;;) {
-      const page = await crash
-        .find(
-          lastId == null
-            ? filter
-            : { $and: [filter, { _id: { $gt: lastId } }] },
-        )
-        .sort({ _id: 1 })
-        .limit(BATCH_SIZE)
-        .exec();
+      const page = await withRetry("fetching batch from MongoDB", () =>
+        crash
+          .find(
+            lastId == null
+              ? filter
+              : { $and: [filter, { _id: { $gt: lastId } }] },
+          )
+          .sort({ _id: 1 })
+          .limit(BATCH_SIZE)
+          .exec(),
+      );
       if (page.length === 0) break;
       lastId = page[page.length - 1]._id;
 
@@ -83,7 +85,7 @@ async function analyze() {
           }
 
           if (changed) {
-            await doc.save();
+            await withRetry(`saving ${doc._id}`, () => doc.save());
             saved++;
           }
         }
