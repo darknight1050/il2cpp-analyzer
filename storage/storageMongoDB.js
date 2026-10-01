@@ -8,8 +8,17 @@ const {
     Crash = require("../dbmodels/crash"),
     { ensureIndex, search } = require("./elasticsearch");
 
+// autoIndex is off by default on purpose. Mongoose otherwise tries to build
+// every declared index on connect, and on a large crashes collection that is a
+// full collection scan triggered by nothing more than starting the app - it
+// restarts on every deploy, every container restart and every maintenance
+// script run. Create indexes deliberately instead (recompress.js also recreates
+// them on the collection it writes), or set MONGO_AUTO_INDEX=true on a small or
+// empty database where the build is cheap.
 mongoose
-    .connect(process.env.MONGODB_URI)
+    .connect(process.env.MONGODB_URI, {
+        autoIndex: process.env.MONGO_AUTO_INDEX === "true",
+    })
     .then(() => console.log("Mongoose connected."))
     .catch((e) => console.log(e));
 
