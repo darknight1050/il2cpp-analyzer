@@ -35,6 +35,12 @@ const crashSchema = new mongoose.Schema(
     { strict: false }
 );
 
+// For the retention job, which selects ids by age. Compound with _id so the
+// query is covered by the index alone - deleteOld projects only _id, so with a
+// plain {uploadDate: 1} index MongoDB would still fetch every matching crash
+// document, and these average a few hundred KB each.
+crashSchema.index({ uploadDate: 1, _id: 1 });
+
 crashSchema.set("toJSON", {
     transform: function (doc, ret, options) {
         ret.crashId = ret._id;
