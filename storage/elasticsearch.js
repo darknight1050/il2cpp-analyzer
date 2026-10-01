@@ -52,7 +52,18 @@ const getClient = () => {
     if (!client) {
         const node = process.env.ELASTICSEARCH_URI;
         if (!node) throw new Error("ELASTICSEARCH_URI is not set!");
-        client = new Client({ node });
+        client = new Client({
+            node,
+            // The v9 client defaults requestTimeout to null, meaning no
+            // timeout at all: a request to a cluster that stops responding
+            // hangs forever. That silently defeats the retry logic in the
+            // maintenance scripts, because a hung request never throws and so
+            // never gets retried. Bound it so a stall becomes a normal error.
+            requestTimeout: 120000,
+            // Let withRetry own retrying, with backoff, rather than having two
+            // layers compounding each other's delays.
+            maxRetries: 0,
+        });
     }
     return client;
 };
