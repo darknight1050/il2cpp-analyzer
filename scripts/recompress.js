@@ -5,6 +5,7 @@ require("dotenv").config({
 
 const mongoose = require("mongoose");
 const { withRetry } = require("./retry");
+const { isInterrupted } = require("./interrupt");
 
 // Rewrites the crashes collection with zstd block compression instead of the
 // WiredTiger snappy default. Measured on real crash data at 17.8x versus
@@ -77,6 +78,20 @@ async function recompress() {
       );
       copied += batch.length;
       console.log(`Copied ${copied}/~${total} documents (through ${lastId}).`);
+
+      if (isInterrupted()) {
+        console.log(
+          `
+Stopped after ${copied} documents. "${SOURCE}" was never written ` +
+            `to, so it is untouched.
+Resume with:
+` +
+            `  node scripts/recompress.js --resume ${lastId}
+` +
+            `Or reclaim the partial copy with db.${TARGET}.drop()`,
+        );
+        return;
+      }
     }
 
     // Recreate the non-_id indexes the schema declares.

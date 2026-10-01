@@ -62,6 +62,9 @@ services:
     build:
       context: .
       target: prod
+    # Without an init process node runs as PID 1, where the kernel applies no
+    # default signal handling - Ctrl+C on `docker compose run` is then ignored.
+    init: true
     restart: unless-stopped
     depends_on:
       mongodb:

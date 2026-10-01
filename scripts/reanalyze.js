@@ -5,6 +5,8 @@ require("dotenv").config({
 
 const crash = require("../dbmodels/crash");
 const mongoose = require("mongoose");
+const { withRetry } = require("./retry");
+const { isInterrupted } = require("./interrupt");
 const {
   getBeatsaberVersionFromStacktrace,
   loadVersions,
@@ -90,6 +92,17 @@ async function analyze() {
           }
         }
         console.log(`Analyzed ${++count} crashes, saved ${saved}.`);
+      }
+
+      if (isInterrupted()) {
+        // No resume id needed: analysed documents no longer match the filter,
+        // so simply running the script again carries on where this left off.
+        console.log(
+          `
+Stopped after ${count} crashes (${saved} saved). ` +
+            `Re-run the script to continue with the rest.`,
+        );
+        return;
       }
     }
   } finally {

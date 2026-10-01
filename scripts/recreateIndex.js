@@ -6,6 +6,7 @@ require("dotenv").config({
 const crash = require("../dbmodels/crash");
 const mongoose = require("mongoose");
 const { withRetry } = require("./retry");
+const { isInterrupted } = require("./interrupt");
 const {
   recreateIndex: recreateEsIndex,
   bulkIndexCrashes,
@@ -59,6 +60,16 @@ async function recreateIndex() {
       failed.push(...result.failed);
       // Printing the id makes an interrupted run resumable.
       console.log(`Indexed ${indexed} documents (through ${lastId}).`);
+
+      if (isInterrupted()) {
+        await refresh();
+        console.log(
+          `
+Stopped after ${indexed} documents. Resume with:
+` + `  node scripts/recreateIndex.js --resume ${lastId}`,
+        );
+        return;
+      }
     }
 
     await refresh();
