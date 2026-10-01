@@ -15,7 +15,8 @@
     "reanalyze": "node scripts/reanalyze.js",
     "recreateIndex": "node scripts/recreateIndex.js",
     "compact": "node scripts/compact.js",
-    "deleteOld": "node scripts/deleteOld.js"
+    "deleteOld": "node scripts/deleteOld.js",
+    "recompress": "node scripts/recompress.js"
   },
   "keywords": [],
   "author": "darknight1050",
