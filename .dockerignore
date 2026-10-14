@@ -131,6 +131,8 @@ mongo-volume/
 dbinit/*
 # Analyzer data (multi-GB, mounted as a volume at runtime)
 versions/
+elasticsearch-data/
 docker/elasticsearch-data/
 docker/mongo-volume/
 .git/
+./db
